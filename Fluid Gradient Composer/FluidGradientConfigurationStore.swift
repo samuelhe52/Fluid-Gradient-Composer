@@ -9,11 +9,34 @@ import Foundation
 import SwiftUI
 
 class FluidGradientConfigurationStore: ObservableObject {
-    @Published private var configuration: FluidGradientConfiguration
+    @Published private var configuration: FluidGradientConfiguration {
+        didSet { autsave() }
+    }
+    
+    private let autoSaveURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("Fluid-Gradient-Configuration.json")
+    
+    private func autsave() {
+        save(to: autoSaveURL)
+        print("autosaved to \(autoSaveURL)")
+    }
+    
+    private func save(to url: URL) {
+        do {
+            let configData = try JSONEncoder().encode(configuration)
+            try configData.write(to: url)
+        } catch {
+            print("Error saving configuration to: \(url)")
+        }
+    }
     
     init(configuration: FluidGradientConfiguration = .init(colors: [], speed: 1, highlights: [])) {
-        self.configuration = configuration
-        randomizeColors()
+        if let autosavedData = try? Data(contentsOf: autoSaveURL),
+           let autosavedConfig = try? JSONDecoder().decode(FluidGradientConfiguration.self, from: autosavedData) {
+            self.configuration = autosavedConfig
+        } else {
+            self.configuration = configuration
+            randomizeColors()
+        }
     }
     
     var colors: [Color] { configuration.colors.displayColors }
