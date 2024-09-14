@@ -15,14 +15,14 @@ struct ContentView: View {
         VStack {
             gradient
                 .clipShape(RoundedRectangle(cornerRadius: 25))
+            Slider(value: $configurationStore.speed, in: 0...5)
             HStack {
                 Button {
                     configurationStore.randomizeColors()
                 } label: { Text("Randomize") }
-                Slider(value: $configurationStore.speed, in: 0...5)
+                Spacer()
                 ColorSchemeSwitcher()
             }
-            .padding(4)
         }
         .padding()
         .navigationTitle("Fluid Gradient Composer")
