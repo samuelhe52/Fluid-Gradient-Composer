@@ -8,33 +8,69 @@
 import SwiftUI
 import FluidGradient
 
-struct ContentView: View {
-    @ObservedObject var configurationStore: FluidGradientConfigurationStore
+struct ComposerView: View {
+    @ObservedObject var presetStore: FGCPresetStore
     
     var body: some View {
         VStack {
             gradient
                 .clipShape(RoundedRectangle(cornerRadius: 25))
-            Slider(value: $configurationStore.speed, in: 0...5)
+            Slider(value: $presetStore.speed, in: 0...5)
             HStack {
-                Button {
-                    configurationStore.randomizeColors()
-                } label: { Text("Randomize") }
+                Button { presetStore.randomizeColors() } label: { Text("Randomize") }
                 Spacer()
                 ColorSchemeSwitcher()
             }
+            presetManagement
         }
         .padding()
         .navigationTitle("Fluid Gradient Composer")
     }
     
-    var gradient: some View {
-        FluidGradient(blobs: configurationStore.colors,
-                      highlights: configurationStore.highlights,
-                      speed: configurationStore.speed)
+    private var gotoPreset: some View {
+        Menu("Switch to") {
+            ForEach(presetStore.presets) { preset in
+                Button {
+                    presetStore.currentPresetID = preset.id
+                } label: {
+                    Text(preset.name)
+                }
+            }
+        }
+    }
+    
+    private var presetManagement: some View {
+        HStack {
+            Spacer()
+            Menu(presetStore.currentPreset.name) {
+                Button(role: .destructive) {
+                    deletePreset(withID: presetStore.currentPresetID)
+                } label: { Text("Delete") }
+                gotoPreset
+            }
+            Spacer()
+            Button { presetStore.addPreset(withName: "Untitled") } label: { Text("Save") }
+            Spacer()
+        }
+    }
+    
+    private func deletePreset(withID id: FGCPreset.ID) {
+        do {
+            try presetStore.deleteCurrentPreset(withID: presetStore.currentPresetID)
+        } catch FGCStoreError.cannotDeleteDefaultPreset {
+            print("Cannot delete default preset!")
+        } catch {
+            print("An error occurred: \(error.localizedDescription).")
+        }
+    }
+    
+    private var gradient: some View {
+        FluidGradient(blobs: presetStore.colors,
+                      highlights: presetStore.highlights,
+                      speed: presetStore.speed)
     }
 }
 
 #Preview {
-    ContentView(configurationStore: .init())
+    ComposerView(presetStore: .init())
 }
