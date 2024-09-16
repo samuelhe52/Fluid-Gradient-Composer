@@ -76,7 +76,7 @@ class PresetStore: ObservableObject {
             }
         }
         presets.remove(atOffsets: indexSet)
-        logger.info("Delete presets at indexes: \"\(indexSet, privacy: .public)\".")
+        logger.info("Deleted \(indexSet.count) preset(s).")
     }
     
     func deletePreset(withID id: FGCPreset.ID) throws {

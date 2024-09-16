@@ -27,6 +27,7 @@ struct PresetPreview: View {
         .sheet(isPresented: $isEditing) { PresetEditor(preset: $preset) }
         .padding()
         .navigationTitle(preset.name)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { ColorSchemeSwitcher() }
     }
     

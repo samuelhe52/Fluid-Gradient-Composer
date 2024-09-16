@@ -10,11 +10,13 @@ import FluidGradient
 
 struct PresetEditor: View {
     @Binding var preset: FGCPreset
-    
+        
     var body: some View {
         Form {
             Section("name") {
                 TextField("Enter a name", text: $preset.name)
+                    .disabled(isDefaultPreset)
+                    .foregroundStyle(isDefaultPreset ? Color(uiColor: .systemGray) : .primary)
             }
             Section("colors") {
                 ColorPalette(colors: $preset.colors) { randomizeColors() }
@@ -37,6 +39,8 @@ struct PresetEditor: View {
             }
         }
     }
+    
+    var isDefaultPreset: Bool { preset.id == FGCPreset.default.id }
     
     private func randomizeColors() {
         preset.colors = FGCPreset.generateRandomColors().colors

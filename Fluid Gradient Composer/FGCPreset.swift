@@ -30,7 +30,8 @@ struct FGCPreset: Codable, Identifiable {
     static var `default`: Self = .init(name: "Default",
                                        colors: defaultColors,
                                        speed: 1,
-                                       highlights: defaultColors)
+                                       highlights: defaultColors,
+                                       id: .init(uuidString: "9A2F1A9E-4579-4B79-A99E-6477FF635A09") ?? .init())
     
     static var defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
     
