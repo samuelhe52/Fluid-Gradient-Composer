@@ -32,7 +32,7 @@ struct ColorSchemeSwitcher: View {
                 }
             }
         } label: {
-            Text("Color Scheme")
+            Text("Appearance")
         }
         .onChange(of: systemColorScheme) {
             if colorSchemeMode == .system {

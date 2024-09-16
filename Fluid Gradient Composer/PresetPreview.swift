@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  FGCPresetPreview.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/8/11.
@@ -8,21 +8,27 @@
 import SwiftUI
 import FluidGradient
 
-struct ComposerView: View {
+struct PresetPreview: View {
     @Binding var preset: FGCPreset
+    
+    @State private var isEditing: Bool = false
     
     var body: some View {
         VStack {
             gradient
                 .clipShape(RoundedRectangle(cornerRadius: 25))
             Slider(value: $preset.speed, in: 0...5)
-            Button { preset.randomizeColors() } label: { Text("Randomize") }
+            HStack {
+                Button("Randomize") { preset.randomizeColors() }
+                Spacer()
+                Button("Edit") { isEditing = true }
+            }
         }
+        .sheet(isPresented: $isEditing) { PresetEditor(preset: $preset) }
         .padding()
         .navigationTitle(preset.name)
-        .toolbar {
-            ColorSchemeSwitcher()
-        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ColorSchemeSwitcher() }
     }
     
     @State var displayDeleteDefaultWarning: Bool = false

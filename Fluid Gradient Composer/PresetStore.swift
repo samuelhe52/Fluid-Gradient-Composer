@@ -1,5 +1,5 @@
 //
-//  FluidGradientPresetStore.swift
+//  PresetStore.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/8.
@@ -11,7 +11,7 @@ import os
 
 let logger = Logger(subsystem: "com.samuelhe.FluidGradientComposer", category: "general")
 
-class FGCPresetStore: ObservableObject {
+class PresetStore: ObservableObject {
     @Published var presets: [FGCPreset] {
         didSet { autosave() }
     }
@@ -105,12 +105,15 @@ enum FGCStoreError: Error {
     case cannotDeleteDefaultPreset
 }
 
-
-extension Array where Element == FGCPreset.AvailableColor {
+extension Array where Element: DisplayableColor {
     var displayColors: [Color] { map(\.displayColor) }
 }
 
-extension FGCPreset.AvailableColor {
+protocol DisplayableColor {
+    var displayColor: Color { get }
+}
+
+extension FGCPreset.BuiltinColor: DisplayableColor {
     var displayColor: Color {
         switch self {
         case .blue: return .blue
@@ -125,3 +128,5 @@ extension FGCPreset.AvailableColor {
         }
     }
 }
+
+

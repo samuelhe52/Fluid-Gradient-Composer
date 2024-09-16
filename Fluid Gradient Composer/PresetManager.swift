@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct PresetManager: View {
-    @ObservedObject var store: FGCPresetStore
+    @ObservedObject var store: PresetStore
     
     @State var displayCannotDeleteDefaultPresetAlert: Bool = false
     @State var editingPresetID: FGCPreset.ID?
     @State var editingPreset: Bool = false
     
     var body: some View {
-        NavigationStack {
+        NavigationSplitView {
             List {
                 ForEach(store.presets) { preset in
                     NavigationLink(value: preset.id) {
@@ -38,18 +38,26 @@ struct PresetManager: View {
             .toolbar { toolbar }
             .navigationDestination(for: FGCPreset.ID.self) { presetID in
                 if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
-                    ComposerView(preset: $store.presets[index])
+                    PresetPreview(preset: $store.presets[index])
                 }
             }
             .navigationDestination(isPresented: $editingPreset) {
                 if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
                     PresetEditor(preset: $store.presets[index])
+                        .navigationBarTitleDisplayMode(.inline)
                 }
             }
             .alert("Delete Preset", isPresented: $displayCannotDeleteDefaultPresetAlert) {
                 Button("OK") {}
             } message: {
                 Text("Cannot delete the default preset.")
+            }
+        } detail: {
+            VStack(spacing: 15) {
+                Text("Welcome!")
+                    .font(.largeTitle)
+                Text("Choose a preset to start")
+                    .foregroundStyle(.gray)
             }
         }
     }

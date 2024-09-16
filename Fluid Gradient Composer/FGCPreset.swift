@@ -8,16 +8,16 @@
 import Foundation
 
 struct FGCPreset: Codable, Identifiable {
-    enum AvailableColor: Codable, CaseIterable {
+    enum BuiltinColor: Codable, CaseIterable {
         case blue, green, yellow, orange, red, pink, purple, teal, indigo
     }
     
     var name: String
-    var colors: [AvailableColor]
+    var colors: [BuiltinColor]
     var speed: Double
-    var highlights: [AvailableColor]
+    var highlights: [BuiltinColor]
     
-    var id: String { name }
+    var id: UUID = UUID()
     
     mutating func randomizeColors() {
         let randomColors = FGCPreset.generateRandomColors()
@@ -32,12 +32,12 @@ struct FGCPreset: Codable, Identifiable {
                                        speed: 1,
                                        highlights: defaultColors)
     
-    static var defaultColors: [AvailableColor] = [.blue, .green, .yellow, .orange, .red]
+    static var defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
     
-    static func generateRandomColors() -> (colors: [AvailableColor], highlights: [AvailableColor]) {
-        var colors: [FGCPreset.AvailableColor] = []
-        var highlights: [FGCPreset.AvailableColor] = []
-        let colorPool = FGCPreset.AvailableColor.allCases
+    static func generateRandomColors() -> (colors: [BuiltinColor], highlights: [BuiltinColor]) {
+        var colors: [FGCPreset.BuiltinColor] = []
+        var highlights: [FGCPreset.BuiltinColor] = []
+        let colorPool = FGCPreset.BuiltinColor.allCases
         for _ in 0...Int.random(in: 5...5) {
             colors.append(colorPool.randomElement()!)
         }
