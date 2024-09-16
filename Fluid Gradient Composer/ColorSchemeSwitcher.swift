@@ -20,15 +20,21 @@ struct ColorSchemeSwitcher: View {
     var body: some View {
         Menu {
             ForEach(ColorSchemeMode.allCases, id: \.self) { mode in
-                Button(mode.rawValue) {
+                Button {
                     colorSchemeMode = mode
                     applyColorScheme()
+                } label: {
+                    if mode == colorSchemeMode {
+                        Label(mode.rawValue, systemImage: "checkmark")
+                    } else {
+                        Text(mode.rawValue)
+                    }
                 }
             }
         } label: {
-            Text(colorSchemeMode.rawValue)
+            Text("Color Scheme")
         }
-        .onChange(of: systemColorScheme) { _ in
+        .onChange(of: systemColorScheme) {
             if colorSchemeMode == .system {
                 applyColorScheme()
             }

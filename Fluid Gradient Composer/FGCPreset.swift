@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FGCPreset: Codable, Identifiable{
+struct FGCPreset: Codable, Identifiable {
     enum AvailableColor: Codable, CaseIterable {
         case blue, green, yellow, orange, red, pink, purple, teal, indigo
     }
@@ -18,6 +18,21 @@ struct FGCPreset: Codable, Identifiable{
     var highlights: [AvailableColor]
     
     var id: String { name }
+    
+    mutating func randomizeColors() {
+        let randomColors = FGCPreset.generateRandomColors()
+        colors = randomColors.colors
+        highlights = randomColors.highlights
+    }
+    
+    // MARK: - static methods
+    
+    static var `default`: Self = .init(name: "Default",
+                                       colors: defaultColors,
+                                       speed: 1,
+                                       highlights: defaultColors)
+    
+    static var defaultColors: [AvailableColor] = [.blue, .green, .yellow, .orange, .red]
     
     static func generateRandomColors() -> (colors: [AvailableColor], highlights: [AvailableColor]) {
         var colors: [FGCPreset.AvailableColor] = []
@@ -32,11 +47,4 @@ struct FGCPreset: Codable, Identifiable{
         
         return (colors, highlights)
     }
-    
-    static var `default`: Self = .init(name: "Default",
-                                       colors: defaultColors,
-                                       speed: 1,
-                                       highlights: defaultColors)
-    
-    static var defaultColors: [AvailableColor] = [.blue, .green, .yellow, .orange, .red]
 }
