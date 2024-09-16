@@ -7,119 +7,87 @@
 
 import Foundation
 import SwiftUI
+import os
+
+let logger = Logger(subsystem: "com.samuelhe.FluidGradientComposer", category: "general")
 
 class FGCPresetStore: ObservableObject {
-    @Published private(set) var presets: [FGCPreset] {
+    @Published var presets: [FGCPreset] {
         didSet { autosave() }
     }
     
-    @Published var currentPresetID: FGCPreset.ID
-    private(set) var currentPreset: FGCPreset {
-        get {
-            presets.filter { $0.id == currentPresetID }.first!
-        }
-        set {
-            if let index = presets.firstIndex(where: { $0.id == currentPresetID }) {
-                presets[index] = newValue
-            } else {
-                print("Error! Could not find preset with ID \(currentPresetID).")
-            }
-        }
-    }
-    
-    struct FGCSettings: Codable {
-        var currentPresetID: FGCPreset.ID
-        var presets: [FGCPreset]
-        var currentPreset: FGCPreset { presets.filter { $0.id == currentPresetID }.first! }
-    }
-    
-    private let settingsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("Fluid-Gradient-Settings.json")
+    private let presetsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("Fluid-Gradient-Presets.json")
     
     private var autosaveEnabled: Bool = true
     
     private func autosave() {
         if autosaveEnabled {
-            save(to: settingsURL)
-            print("[\(Date().description)]\nautosaved to \(settingsURL).")
+            save(to: presetsURL)
+            logger.info("Autosaved to \(self.presetsURL).")
         }
     }
     
     private func save(to url: URL) {
         do {
-            let settingsData = try JSONEncoder().encode(
-                FGCSettings(currentPresetID: currentPresetID,
-                            presets: presets)
-            )
+            let settingsData = try JSONEncoder().encode(presets)
             try settingsData.write(to: url)
         } catch {
-            print("Error saving settings to: \(url)!")
+            logger.error("Error saving presets to: \(url): \(error.localizedDescription).")
         }
     }
     
     init() {
-        if let existingSettingsData = try? Data(contentsOf: settingsURL),
-           let existingSettings = try? JSONDecoder().decode(FGCSettings.self, from: existingSettingsData) {
-            self.presets = existingSettings.presets
-            self.currentPresetID = existingSettings.currentPreset.id
+        if let existingPresetsData = try? Data(contentsOf: presetsURL),
+           let existingPresets = try? JSONDecoder().decode([FGCPreset].self,
+                                                           from: existingPresetsData)
+        {
+            self.presets = existingPresets
         } else {
             self.presets = [.default]
-            self.currentPresetID = FGCPreset.default.id
         }
     }
     
-    var colors: [Color] { currentPreset.colors.displayColors }
-    var highlights: [Color] { currentPreset.highlights.displayColors }
-    var speed: Double {
-        get { currentPreset.speed }
-        set { changeSpeed(to: newValue) }
-    }
-    
     // MARK: - Intents
-    func randomizeColors() {
-        let randomColors = FGCPreset.generateRandomColors()
-        currentPreset.colors = randomColors.colors
-        currentPreset.highlights = randomColors.highlights
-    }
-    
-    func modifyPreset(name: String,
-                      colors: [FGCPreset.AvailableColor],
-                      highlights: [FGCPreset.AvailableColor],
-                      speed: Double) {
-        currentPreset.name = name
-        currentPreset.colors = colors
-        currentPreset.highlights = highlights
-        currentPreset.speed = speed
-    }
-    
-    func changeSpeed(to speed: Double) {
-        currentPreset.speed = speed
-    }
-    
-    func addPreset(withName name: String) {
+    func newPreset(withName name: String) {
         var presetName = name
         var counter = 1
         while nameCollision(presetName) {
             presetName = name.appending(" (\(counter))")
             counter += 1
         }
-        let preset = FGCPreset(name: presetName,
-                               colors: currentPreset.colors,
-                               speed: currentPreset.speed,
-                               highlights: currentPreset.highlights)
-        presets.append(preset)
-        currentPresetID = preset.id
         
+        let randomColors = FGCPreset.generateRandomColors()
+        let preset = FGCPreset(name: presetName,
+                               colors: randomColors.colors,
+                               speed: 1,
+                               highlights: randomColors.highlights)
+        presets.append(preset)
+        logger.info("Added preset \"\(presetName, privacy: .public)\".")
+
         func nameCollision(_ name: String) -> Bool {
             presets.map { $0.name }.contains(name)
         }
     }
     
-    func deleteCurrentPreset(withID id: FGCPreset.ID) throws {
-        guard id != FGCPreset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
-        disablingAutoSave {
-            presets.removeAll { $0.id == id }
-            currentPresetID = presets.first?.id ?? FGCPreset.default.id
+    func deletePreset(at indexSet: IndexSet) throws {
+        for index in indexSet {
+            guard presets[index].id != FGCPreset.default.id else {
+                throw FGCStoreError.cannotDeleteDefaultPreset
+            }
         }
+        presets.remove(atOffsets: indexSet)
+        logger.info("Delete presets at indexes: \"\(indexSet, privacy: .public)\".")
+    }
+    
+    func deletePreset(withID id: FGCPreset.ID) throws {
+        guard id != FGCPreset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
+        disablingAutoSave { presets.removeAll { $0.id == id } }
+        logger.info("Deleted preset with ID: \"\(id, privacy: .public)\".")
+    }
+    
+    func movePreset(from source: IndexSet, to destination: Int) {
+        presets.move(fromOffsets: source, toOffset: destination)
+        logger.info("Moved presets at indexes: \"\(source, privacy: .public)\" to index: \"\(destination, privacy: .public)\".")
     }
     
     /// Disables autosave when the action is taking place, allowing for making two changes and "commit" them once.
