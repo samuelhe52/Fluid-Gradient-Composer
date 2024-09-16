@@ -10,9 +10,9 @@ import SwiftUI
 struct PresetManager: View {
     @ObservedObject var store: PresetStore
     
-    @State var displayCannotDeleteDefaultPresetAlert: Bool = false
-    @State var editingPresetID: FGCPreset.ID?
-    @State var editingPreset: Bool = false
+    @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
+    @State private var editingPresetID: FGCPreset.ID?
+    @State private var editingPreset: Bool = false
     
     var body: some View {
         NavigationSplitView {
@@ -44,7 +44,6 @@ struct PresetManager: View {
             .navigationDestination(isPresented: $editingPreset) {
                 if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
                     PresetEditor(preset: $store.presets[index])
-                        .navigationBarTitleDisplayMode(.inline)
                 }
             }
             .alert("Delete Preset", isPresented: $displayCannotDeleteDefaultPresetAlert) {
@@ -69,7 +68,7 @@ struct PresetManager: View {
                     try store.deletePreset(withID: presetID)
                 } catch FGCStoreError.cannotDeleteDefaultPreset {
                     displayCannotDeleteDefaultPresetAlert = true
-                    logger.error("Cannot delete default preset")
+                    logger.warning("Cannot delete default preset")
                 } catch {
                     logger.error("Failed to delete preset: \(error)")
                 }
@@ -89,7 +88,7 @@ struct PresetManager: View {
             try store.deletePreset(at: indexSet)
         } catch FGCStoreError.cannotDeleteDefaultPreset {
             displayCannotDeleteDefaultPresetAlert = true
-            logger.error("Cannot delete default preset")
+            logger.warning("Cannot delete default preset")
         } catch {
             logger.error("Failed to delete preset: \(error)")
         }
