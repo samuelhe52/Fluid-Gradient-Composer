@@ -8,17 +8,22 @@
 import SwiftUI
 
 struct PresetManager: View {
-    @ObservedObject var store: FGCPresetStore
+    @ObservedObject var store: PresetStore
     
-    @State var displayCannotDeleteDefaultPresetAlert: Bool = false
-    @State var editingPresetID: FGCPreset.ID?
-    @State var editingPreset: Bool = false
+    @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
+    @State private var editingPresetID: FGCPreset.ID?
+    @State private var editingPreset: Bool = false
+    @State private var selectedPreset: FGCPreset.ID?
     
     var body: some View {
         NavigationView {
             List {
                 ForEach(store.presets) { preset in
-                    NavigationLink(destination: ComposerView(preset: binding(for: preset))) {
+                    NavigationLink(
+                        destination: PresetPreview(preset: binding(for: preset)),
+                        tag: preset.id,
+                        selection: $selectedPreset
+                    ) {
                         VStack(alignment: .leading) {
                             Text(preset.name)
                         }
@@ -36,17 +41,36 @@ struct PresetManager: View {
             }
             .navigationTitle("Presets")
             .toolbar { toolbar }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .sheet(isPresented: $editingPreset) {
-            if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
-                PresetEditor(preset: $store.presets[index])
+            .background(
+                NavigationLink(
+                    destination: editingPresetDestination,
+                    isActive: $editingPreset,
+                    label: { EmptyView() }
+                )
+            )
+            
+            // Detail view placeholder
+            VStack(spacing: 15) {
+                Text("Welcome!")
+                    .font(.largeTitle)
+                Text("Choose a preset to start")
+                    .foregroundColor(.gray)
             }
         }
+        .navigationViewStyle(DoubleColumnNavigationViewStyle())
         .alert("Delete Preset", isPresented: $displayCannotDeleteDefaultPresetAlert) {
-            Button("OK") {}
+            Button("OK", role: .cancel) {}
         } message: {
             Text("Cannot delete the default preset.")
+        }
+    }
+    
+    @ViewBuilder
+    private var editingPresetDestination: some View {
+        if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
+            PresetEditor(preset: $store.presets[index])
+        } else {
+            EmptyView()
         }
     }
 
@@ -64,9 +88,9 @@ struct PresetManager: View {
                     try store.deletePreset(withID: presetID)
                 } catch FGCStoreError.cannotDeleteDefaultPreset {
                     displayCannotDeleteDefaultPresetAlert = true
-                    logger.error("Cannot delete default preset")
+                    print("Cannot delete default preset")
                 } catch {
-                    logger.error("Failed to delete preset: \(error)")
+                    print("Failed to delete preset: \(error)")
                 }
             } label: {
                 Text("Delete")
@@ -74,7 +98,7 @@ struct PresetManager: View {
             Button("Edit") {
                 editingPresetID = presetID
                 editingPreset = true
-                logger.info("Editing preset \(presetID)")
+                print("Editing preset \(presetID)")
             }
         }
     }
@@ -84,17 +108,19 @@ struct PresetManager: View {
             try store.deletePreset(at: indexSet)
         } catch FGCStoreError.cannotDeleteDefaultPreset {
             displayCannotDeleteDefaultPresetAlert = true
-            logger.error("Cannot delete default preset")
+            print("Cannot delete default preset")
         } catch {
-            logger.error("Failed to delete preset: \(error)")
+            print("Failed to delete preset: \(error)")
         }
     }
     
-    private var toolbar: some View {
-        Button {
-            withAnimation { store.newPreset(withName: "Untitled") }
-        } label: {
-            Label("New", systemImage: "plus")
+    private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+                withAnimation { store.newPreset(withName: "Untitled") }
+            } label: {
+                Label("New", systemImage: "plus")
+            }
         }
     }
 }
