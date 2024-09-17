@@ -11,8 +11,7 @@ struct PresetManager: View {
     @ObservedObject var store: PresetStore
     
     @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
-    @State private var editingPresetID: FGCPreset.ID?
-    @State private var editingPreset: Bool = false
+    @State private var editingPreset: FGCPreset?
     @State private var selectedPreset: FGCPreset.ID?
     
     var body: some View {
@@ -41,13 +40,11 @@ struct PresetManager: View {
             }
             .navigationTitle("Presets")
             .toolbar { toolbar }
-            .background(
-                NavigationLink(
-                    destination: editingPresetDestination,
-                    isActive: $editingPreset,
-                    label: { EmptyView() }
-                )
-            )
+            .sheet(item: $editingPreset) { preset in
+                if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
+                    PresetEditor(preset: $store.presets[index])
+                }
+            }
             
             // Detail view placeholder
             VStack(spacing: 15) {
@@ -62,15 +59,6 @@ struct PresetManager: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Cannot delete the default preset.")
-        }
-    }
-    
-    @ViewBuilder
-    private var editingPresetDestination: some View {
-        if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
-            PresetEditor(preset: $store.presets[index])
-        } else {
-            EmptyView()
         }
     }
 
@@ -96,9 +84,10 @@ struct PresetManager: View {
                 Text("Delete")
             }
             Button("Edit") {
-                editingPresetID = presetID
-                editingPreset = true
-                print("Editing preset \(presetID)")
+                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+                    editingPreset = store.presets[index]
+                    print("Editing preset \(presetID)")
+                }
             }
         }
     }
