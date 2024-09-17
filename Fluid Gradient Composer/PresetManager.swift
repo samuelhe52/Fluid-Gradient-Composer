@@ -9,14 +9,14 @@ import SwiftUI
 
 struct PresetManager: View {
     @ObservedObject var store: PresetStore
+    @State private var selectedPresetID: FGCPreset.ID?
     
     @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
-    @State private var editingPresetID: FGCPreset.ID?
-    @State private var editingPreset: Bool = false
+    @State private var editingPreset: FGCPreset?
     
     var body: some View {
         NavigationSplitView {
-            List {
+            List(selection: $selectedPresetID) {
                 ForEach(store.presets) { preset in
                     NavigationLink(value: preset.id) {
                         VStack(alignment: .leading) {
@@ -41,8 +41,8 @@ struct PresetManager: View {
                     PresetPreview(preset: $store.presets[index])
                 }
             }
-            .navigationDestination(isPresented: $editingPreset) {
-                if let index = store.presets.firstIndex(where: { $0.id == editingPresetID }) {
+            .sheet(item: $editingPreset) { preset in
+                if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
                     PresetEditor(preset: $store.presets[index])
                 }
             }
@@ -52,6 +52,16 @@ struct PresetManager: View {
                 Text("Cannot delete the default preset.")
             }
         } detail: {
+            detailView
+        }
+    }
+    
+    @ViewBuilder
+    private var detailView: some View {
+        if let selectedID = selectedPresetID,
+           let index = store.presets.firstIndex(where: { $0.id == selectedID }) {
+            PresetPreview(preset: $store.presets[index])
+        } else {
             VStack(spacing: 15) {
                 Text("Welcome!")
                     .font(.largeTitle)
@@ -60,7 +70,7 @@ struct PresetManager: View {
             }
         }
     }
-    
+        
     private func presetContextMenu(presetID: FGCPreset.ID) -> some View {
         Group {
             Button(role: .destructive) {
@@ -76,9 +86,10 @@ struct PresetManager: View {
                 Text("Delete")
             }
             Button("Edit") {
-                editingPresetID = presetID
-                editingPreset = true
-                logger.info("Editing preset \(presetID)")
+                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+                    editingPreset = store.presets[index]
+                    logger.info("Editing preset \(presetID)")
+                }
             }
         }
     }
@@ -94,11 +105,14 @@ struct PresetManager: View {
         }
     }
     
-    private var toolbar: some View {
-        Button {
-            withAnimation { store.newPreset(withName: "Untitled") }
-        } label: {
-            Label("New", systemImage: "plus")
+    private var toolbar: some ToolbarContent {
+        ToolbarItemGroup {
+            Button {
+                withAnimation { store.newPreset(withName: "Untitled") }
+            } label: {
+                Label("New", systemImage: "plus")
+            }
+            EditButton()
         }
     }
 }
