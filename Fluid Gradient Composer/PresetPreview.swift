@@ -21,14 +21,17 @@ struct PresetPreview: View {
             HStack {
                 Button("Randomize") { preset.randomizeColors() }
                 Spacer()
-                Button("Edit") { isEditing = true }
+                Button("Edit") {
+                    isEditing = true
+                    logger.info("Editing preset \(preset.id)")
+                }
             }
         }
         .sheet(isPresented: $isEditing) { PresetEditor(preset: $preset) }
-        .padding()
-        .navigationTitle(preset.name)
+        .navigationTitle("\(preset.name) - Preview")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ColorSchemeSwitcher() }
+        .padding()
     }
     
     @State var displayDeleteDefaultWarning: Bool = false

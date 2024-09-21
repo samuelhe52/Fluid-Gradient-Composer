@@ -9,19 +9,19 @@ import SwiftUI
 
 struct PresetManager: View {
     @ObservedObject var store: PresetStore
+    @State private var selectedPresetID: FGCPreset.ID?
     
     @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
     @State private var editingPreset: FGCPreset?
-    @State private var selectedPreset: FGCPreset.ID?
-    
+
     var body: some View {
         NavigationView {
-            List {
+            List(selection: $selectedPresetID) {
                 ForEach(store.presets) { preset in
                     NavigationLink(
                         destination: PresetPreview(preset: binding(for: preset)),
                         tag: preset.id,
-                        selection: $selectedPreset
+                        selection: $selectedPresetID
                     ) {
                         VStack(alignment: .leading) {
                             Text(preset.name)
@@ -45,20 +45,33 @@ struct PresetManager: View {
                     PresetEditor(preset: $store.presets[index])
                 }
             }
-            
-            // Detail view placeholder
-            VStack(spacing: 15) {
-                Text("Welcome!")
-                    .font(.largeTitle)
-                Text("Choose a preset to start")
-                    .foregroundColor(.gray)
+            .alert(isPresented: $displayCannotDeleteDefaultPresetAlert) {
+                Alert(
+                    title: Text("Delete Preset"),
+                    message: Text("Cannot delete the default preset."),
+                    dismissButton: .default(Text("OK"))
+                )
             }
+            
+            detailView
         }
         .navigationViewStyle(DoubleColumnNavigationViewStyle())
-        .alert("Delete Preset", isPresented: $displayCannotDeleteDefaultPresetAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Cannot delete the default preset.")
+    }
+    
+    @ViewBuilder
+    private var detailView: some View {
+        Group {
+            if let selectedID = selectedPresetID,
+               let index = store.presets.firstIndex(where: { $0.id == selectedID }) {
+                PresetPreview(preset: $store.presets[index])
+            } else {
+                VStack(spacing: 15) {
+                    Text("Welcome!")
+                        .font(.largeTitle)
+                    Text("Choose a preset to start")
+                        .foregroundColor(.gray)
+                }
+            }
         }
     }
 
@@ -68,7 +81,7 @@ struct PresetManager: View {
         }
         return $store.presets[index]
     }
-    
+        
     private func presetContextMenu(presetID: FGCPreset.ID) -> some View {
         Group {
             Button(role: .destructive) {
@@ -104,16 +117,19 @@ struct PresetManager: View {
     }
     
     private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
             Button {
                 withAnimation { store.newPreset(withName: "Untitled") }
             } label: {
                 Label("New", systemImage: "plus")
             }
+            EditButton()
         }
     }
 }
 
-#Preview {
-    PresetManager(store: .init())
+struct PresetManager_Previews: PreviewProvider {
+    static var previews: some View {
+        PresetManager(store: PresetStore())
+    }
 }

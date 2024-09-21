@@ -38,6 +38,8 @@ struct PresetEditor: View {
                 .aspectRatio(2/1, contentMode: .fit)
             }
         }
+        .navigationTitle("\(preset.name) - Editor")
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     var isDefaultPreset: Bool { preset.id == FGCPreset.default.id }
