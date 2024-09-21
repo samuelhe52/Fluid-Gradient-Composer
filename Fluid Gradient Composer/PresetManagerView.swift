@@ -1,5 +1,5 @@
 //
-//  PresetManager.swift
+//  PresetManagerView.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/16.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PresetManager: View {
+struct PresetManagerView: View {
     @ObservedObject var store: PresetStore
     @State private var selectedPresetID: FGCPreset.ID?
     
@@ -42,7 +42,7 @@ struct PresetManager: View {
             .toolbar { toolbar }
             .sheet(item: $editingPreset) { preset in
                 if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
-                    PresetEditor(preset: $store.presets[index])
+                    PresetEditorView(preset: $store.presets[index])
                 }
             }
             .alert(isPresented: $displayCannotDeleteDefaultPresetAlert) {
@@ -130,6 +130,6 @@ struct PresetManager: View {
 
 struct PresetManager_Previews: PreviewProvider {
     static var previews: some View {
-        PresetManager(store: PresetStore())
+        PresetManagerView(store: PresetStore())
     }
 }
