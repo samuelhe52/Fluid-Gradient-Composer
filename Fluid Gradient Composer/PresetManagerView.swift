@@ -1,5 +1,5 @@
 //
-//  PresetManager.swift
+//  PresetManagerView.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/16.
@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct PresetManager: View {
+struct PresetManagerView: View {
     @ObservedObject var store: PresetStore
     @State private var selectedPresetID: FGCPreset.ID?
     
-    @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
+    @State private var showCannotDeleteDefaultPresetAlert: Bool = false
     @State private var editingPreset: FGCPreset?
     
     var body: some View {
@@ -35,7 +35,7 @@ struct PresetManager: View {
                 }
             }
             .navigationTitle("Presets")
-            .toolbar { toolbar }
+            .toolbar { managerToolbar }
             .navigationDestination(for: FGCPreset.ID.self) { presetID in
                 if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
                     PresetPreview(preset: $store.presets[index])
@@ -43,10 +43,10 @@ struct PresetManager: View {
             }
             .sheet(item: $editingPreset) { preset in
                 if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
-                    PresetEditor(preset: $store.presets[index])
+                    PresetEditorView(preset: $store.presets[index])
                 }
             }
-            .alert("Delete Preset", isPresented: $displayCannotDeleteDefaultPresetAlert) {
+            .alert("Delete Preset", isPresented: $showCannotDeleteDefaultPresetAlert) {
                 Button("OK") {}
             } message: {
                 Text("Cannot delete the default preset.")
@@ -77,7 +77,7 @@ struct PresetManager: View {
                 do {
                     try store.deletePreset(withID: presetID)
                 } catch FGCStoreError.cannotDeleteDefaultPreset {
-                    displayCannotDeleteDefaultPresetAlert = true
+                    showCannotDeleteDefaultPresetAlert = true
                     logger.warning("Cannot delete default preset")
                 } catch {
                     logger.error("Failed to delete preset: \(error)")
@@ -98,14 +98,14 @@ struct PresetManager: View {
         do {
             try store.deletePreset(at: indexSet)
         } catch FGCStoreError.cannotDeleteDefaultPreset {
-            displayCannotDeleteDefaultPresetAlert = true
+            showCannotDeleteDefaultPresetAlert = true
             logger.warning("Cannot delete default preset")
         } catch {
             logger.error("Failed to delete preset: \(error)")
         }
     }
     
-    private var toolbar: some ToolbarContent {
+    private var managerToolbar: some ToolbarContent {
         ToolbarItemGroup {
             Button {
                 withAnimation { store.newPreset(withName: "Untitled") }
@@ -118,5 +118,5 @@ struct PresetManager: View {
 }
 
 #Preview {
-    PresetManager(store: .init())
+    PresetManagerView(store: .init())
 }
