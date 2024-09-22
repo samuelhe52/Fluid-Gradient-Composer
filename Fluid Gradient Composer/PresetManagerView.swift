@@ -108,7 +108,10 @@ struct PresetManagerView: View {
     private var managerToolbar: some ToolbarContent {
         ToolbarItemGroup {
             Button {
-                withAnimation { store.newPreset(withName: "Untitled") }
+                let presetID = withAnimation { store.newPreset(withName: "Untitled") }
+                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+                    editingPreset = store.presets[index]
+                }
             } label: {
                 Label("New", systemImage: "plus")
             }

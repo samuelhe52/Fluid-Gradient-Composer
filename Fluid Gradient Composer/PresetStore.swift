@@ -48,7 +48,7 @@ class PresetStore: ObservableObject {
     }
     
     // MARK: - Intents
-    func newPreset(withName name: String) {
+    func newPreset(withName name: String) -> FGCPreset.ID {
         var presetName = name
         var counter = 1
         while nameCollision(presetName) {
@@ -63,6 +63,8 @@ class PresetStore: ObservableObject {
                                highlights: randomColors.highlights)
         presets.append(preset)
         logger.info("Added preset \"\(presetName, privacy: .public)\".")
+        
+        return preset.id
 
         func nameCollision(_ name: String) -> Bool {
             presets.map { $0.name }.contains(name)
@@ -105,15 +107,11 @@ enum FGCStoreError: Error {
     case cannotDeleteDefaultPreset
 }
 
-extension Array where Element: DisplayableColor {
+extension Array where Element == FGCPreset.BuiltinColor {
     var displayColors: [Color] { map(\.displayColor) }
 }
 
-protocol DisplayableColor {
-    var displayColor: Color { get }
-}
-
-extension FGCPreset.BuiltinColor: DisplayableColor {
+extension FGCPreset.BuiltinColor {
     var displayColor: Color {
         switch self {
         case .blue: return .blue

@@ -27,13 +27,13 @@ struct FGCPreset: Codable, Identifiable {
     
     // MARK: - static methods
     
-    static var `default`: Self = .init(name: "Default",
+    static let `default`: Self = .init(name: "Default",
                                        colors: defaultColors,
                                        speed: 1,
                                        highlights: defaultColors,
                                        id: .init(uuidString: "9A2F1A9E-4579-4B79-A99E-6477FF635A09") ?? .init())
     
-    static var defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
+    static let defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
     
     static func generateRandomColors() -> (colors: [BuiltinColor], highlights: [BuiltinColor]) {
         var colors: [FGCPreset.BuiltinColor] = []

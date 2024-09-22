@@ -14,6 +14,7 @@ struct PresetEditorView: View {
     @State private var showDiscardChangesAlert: Bool = false
     
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
     
     init(preset: Binding<FGCPreset>) {
         self._preset = preset
@@ -27,6 +28,7 @@ struct PresetEditorView: View {
                     TextField("Enter a name", text: $preset.name)
                         .disabled(isDefaultPreset)
                         .foregroundStyle(isDefaultPreset ? Color(uiColor: .systemGray) : .primary)
+                        .focused($focused)
                 }
                 Section("colors") {
                     ColorPalette(colors: $preset.colors) { randomizeColors() }
@@ -56,6 +58,7 @@ struct PresetEditorView: View {
                     }
                 }
             }
+            .onAppear { focused = true }
             .navigationTitle("Preset Editor")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -94,13 +97,13 @@ struct ColorPalette: View {
     @Binding var colors: [FGCPreset.BuiltinColor]
     var randomizeColors: () -> Void
     
+    @State private var editingColorIndex: Int?
+    
     var body: some View {
         Group {
             LazyHGrid(rows: [GridItem(.adaptive(minimum: 40))]) {
                 ForEach(colors.indices, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(colors[index].displayColor)
-                        .frame(width: 40, height: 40)
+                    ColorBlob(color: $colors[index])
                 }
             }
             Button("Randomize") {
@@ -109,5 +112,38 @@ struct ColorPalette: View {
                 }
             }
         }
+    }
+}
+
+struct ColorBlob: View {
+    @Binding var color: FGCPreset.BuiltinColor
+    @State private var isEditing: Bool = false
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(color.displayColor)
+            .frame(width: 40, height: 40)
+            .popover(isPresented: $isEditing) {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(FGCPreset.BuiltinColor.allCases, id: \.self) { optionColor in
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(optionColor.displayColor)
+                                .frame(width: 40, height: 40)
+                                .onTapGesture {
+                                    color = optionColor
+                                }
+                                .overlay {
+                                    Image(systemName: "checkmark")
+                                        .opacity(optionColor == color ? 1 : 0)
+                                }
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .padding()
+                .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
+            }
+            .onTapGesture { isEditing = true }
     }
 }
