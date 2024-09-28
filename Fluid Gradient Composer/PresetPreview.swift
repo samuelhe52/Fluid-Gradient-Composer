@@ -9,7 +9,7 @@ import SwiftUI
 import FluidGradient
 
 struct PresetPreview: View {
-    @Binding var preset: FGCPreset
+    @Binding var preset: Preset
     
     @State private var isEditing: Bool = false
     
@@ -27,7 +27,7 @@ struct PresetPreview: View {
                 }
             }
         }
-        .sheet(isPresented: $isEditing) { PresetEditorView(preset: $preset) }
+        .sheet(isPresented: $isEditing) { PresetEditor(preset: $preset) }
         .navigationTitle("\(preset.name) - Preview")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ColorSchemeSwitcher() }

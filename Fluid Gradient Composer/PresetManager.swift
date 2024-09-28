@@ -1,5 +1,5 @@
 //
-//  PresetManagerView.swift
+//  PresetManager.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/16.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct PresetManagerView: View {
+struct PresetManager: View {
     @ObservedObject var store: PresetStore
-    @State private var selectedPresetID: FGCPreset.ID?
+    @State private var selectedPresetID: Preset.ID?
     
     @State private var displayCannotDeleteDefaultPresetAlert: Bool = false
-    @State private var editingPreset: FGCPreset?
+    @State private var editingPreset: Preset?
 
     var body: some View {
         NavigationView {
@@ -42,7 +42,7 @@ struct PresetManagerView: View {
             .toolbar { toolbar }
             .sheet(item: $editingPreset) { preset in
                 if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
-                    PresetEditorView(preset: $store.presets[index])
+                    PresetEditor(preset: $store.presets[index])
                 }
             }
             .alert(isPresented: $displayCannotDeleteDefaultPresetAlert) {
@@ -75,14 +75,14 @@ struct PresetManagerView: View {
         }
     }
 
-    private func binding(for preset: FGCPreset) -> Binding<FGCPreset> {
+    private func binding(for preset: Preset) -> Binding<Preset> {
         guard let index = store.presets.firstIndex(where: { $0.id == preset.id }) else {
             fatalError("Preset not found")
         }
         return $store.presets[index]
     }
         
-    private func presetContextMenu(presetID: FGCPreset.ID) -> some View {
+    private func presetContextMenu(presetID: Preset.ID) -> some View {
         Group {
             Button(role: .destructive) {
                 do {
@@ -133,6 +133,6 @@ struct PresetManagerView: View {
 
 struct PresetManager_Previews: PreviewProvider {
     static var previews: some View {
-        PresetManagerView(store: PresetStore())
+        PresetManager(store: PresetStore())
     }
 }

@@ -1,5 +1,5 @@
 //
-//  FluidGradientPreset.swift
+//  Preset.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/8.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FGCPreset: Codable, Identifiable {
+struct Preset: Codable, Identifiable {
     enum BuiltinColor: Codable, CaseIterable {
         case blue, green, yellow, orange, red, pink, purple, teal, indigo
     }
@@ -20,7 +20,7 @@ struct FGCPreset: Codable, Identifiable {
     var id: UUID = UUID()
     
     mutating func randomizeColors() {
-        let randomColors = FGCPreset.generateRandomColors()
+        let randomColors = Preset.generateRandomColors()
         colors = randomColors.colors
         highlights = randomColors.highlights
     }
@@ -36,9 +36,9 @@ struct FGCPreset: Codable, Identifiable {
     static let defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
     
     static func generateRandomColors() -> (colors: [BuiltinColor], highlights: [BuiltinColor]) {
-        var colors: [FGCPreset.BuiltinColor] = []
-        var highlights: [FGCPreset.BuiltinColor] = []
-        let colorPool = FGCPreset.BuiltinColor.allCases
+        var colors: [Preset.BuiltinColor] = []
+        var highlights: [Preset.BuiltinColor] = []
+        let colorPool = Preset.BuiltinColor.allCases
         for _ in 0...Int.random(in: 5...5) {
             colors.append(colorPool.randomElement()!)
         }

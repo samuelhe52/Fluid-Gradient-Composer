@@ -12,7 +12,7 @@ import os
 let logger = Logger(subsystem: "com.samuelhe.FluidGradientComposer", category: "general")
 
 class PresetStore: ObservableObject {
-    @Published var presets: [FGCPreset] {
+    @Published var presets: [Preset] {
         didSet { autosave() }
     }
     
@@ -38,7 +38,7 @@ class PresetStore: ObservableObject {
     
     init() {
         if let existingPresetsData = try? Data(contentsOf: presetsURL),
-           let existingPresets = try? JSONDecoder().decode([FGCPreset].self,
+           let existingPresets = try? JSONDecoder().decode([Preset].self,
                                                            from: existingPresetsData)
         {
             self.presets = existingPresets
@@ -48,7 +48,7 @@ class PresetStore: ObservableObject {
     }
     
     // MARK: - Intents
-    func newPreset(withName name: String) -> FGCPreset.ID {
+    func newPreset(withName name: String) -> Preset.ID {
         var presetName = name
         var counter = 1
         while nameCollision(presetName) {
@@ -56,8 +56,8 @@ class PresetStore: ObservableObject {
             counter += 1
         }
         
-        let randomColors = FGCPreset.generateRandomColors()
-        let preset = FGCPreset(name: presetName,
+        let randomColors = Preset.generateRandomColors()
+        let preset = Preset(name: presetName,
                                colors: randomColors.colors,
                                speed: 1,
                                highlights: randomColors.highlights)
@@ -73,7 +73,7 @@ class PresetStore: ObservableObject {
     
     func deletePreset(at indexSet: IndexSet) throws {
         for index in indexSet {
-            guard presets[index].id != FGCPreset.default.id else {
+            guard presets[index].id != Preset.default.id else {
                 throw FGCStoreError.cannotDeleteDefaultPreset
             }
         }
@@ -81,8 +81,8 @@ class PresetStore: ObservableObject {
         logger.info("Deleted \(indexSet.count) preset(s).")
     }
     
-    func deletePreset(withID id: FGCPreset.ID) throws {
-        guard id != FGCPreset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
+    func deletePreset(withID id: Preset.ID) throws {
+        guard id != Preset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
         disablingAutoSave { presets.removeAll { $0.id == id } }
         logger.info("Deleted preset with ID: \"\(id, privacy: .public)\".")
     }
@@ -107,11 +107,11 @@ enum FGCStoreError: Error {
     case cannotDeleteDefaultPreset
 }
 
-extension Array where Element == FGCPreset.BuiltinColor {
+extension Array where Element == Preset.BuiltinColor {
     var displayColors: [Color] { map(\.displayColor) }
 }
 
-extension FGCPreset.BuiltinColor {
+extension Preset.BuiltinColor {
     var displayColor: Color {
         switch self {
         case .blue: return .blue
