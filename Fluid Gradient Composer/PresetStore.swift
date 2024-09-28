@@ -49,7 +49,7 @@ class PresetStore {
     }
     
     // MARK: - Intents
-    func newPreset(withName name: String) -> Preset.ID {
+    func addNewPreset(withName name: String) -> Preset.ID {
         var presetName = name
         var counter = 1
         while nameCollision(presetName) {

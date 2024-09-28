@@ -1,5 +1,5 @@
 //
-//  PresetManagerView.swift
+//  PresetManager.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/16.
@@ -7,22 +7,22 @@
 
 import SwiftUI
 
-struct PresetManagerView: View {
+struct PresetManager: View {
     @Bindable var store: PresetStore
-    @State private var selectedPresetId: Preset.ID?
+    @State private var selectedPreset: Preset?
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
     @State private var editingPreset: Preset?
     
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedPresetId) {
+            List(selection: $selectedPreset) {
                 ForEach(store.presets) { preset in
-                    NavigationLink(value: preset.id) {
+                    NavigationLink(value: preset) {
                         VStack(alignment: .leading) {
                             Text(preset.name)
                         }
-                        .contextMenu { contextMenu(forPresetId: preset.id) }
+                        .contextMenu { contextMenu(forPreset: preset) }
                     }
                 }
                 .onDelete { indexSet in
@@ -38,19 +38,19 @@ struct PresetManagerView: View {
             .toolbar { managerToolbar }
             .sheet(item: $editingPreset) { preset in
                 if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
-                    PresetEditorView(preset: $store.presets[index])
+                    PresetEditor(preset: $store.presets[index])
                 }
             }
         } detail: {
-            PresetDetail(store: store, selectedPresetId: selectedPresetId)
+            PresetDetail(store: store, selectedPreset: selectedPreset)
         }
     }
     
-    private func contextMenu(forPresetId presetId: Preset.ID) -> some View {
+    private func contextMenu(forPreset preset: Preset) -> some View {
         Group {
             Button(role: .destructive) {
                 do {
-                    try store.deletePreset(withId: presetId)
+                    try store.deletePreset(withId: preset.id)
                 } catch FGCStoreError.cannotDeleteDefaultPreset {
                     showCannotDeleteDefaultPresetAlert = true
                     logger.warning("Cannot delete default preset")
@@ -66,10 +66,8 @@ struct PresetManagerView: View {
                 Text("Cannot delete the default preset.")
             }
             Button("Edit") {
-                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
-                    editingPreset = store.presets[index]
-                    logger.info("Editing preset \(presetId)")
-                }
+                editingPreset = preset
+                logger.info("Editing preset \(preset.name)")
             }
         }
     }
@@ -88,7 +86,7 @@ struct PresetManagerView: View {
     private var managerToolbar: some ToolbarContent {
         ToolbarItemGroup {
             Button {
-                let presetId = withAnimation { store.newPreset(withName: "Untitled") }
+                let presetId = withAnimation { store.addNewPreset(withName: "Untitled") }
                 if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
                     editingPreset = store.presets[index]
                 }
@@ -102,10 +100,10 @@ struct PresetManagerView: View {
 
 struct PresetDetail: View {
     @Bindable var store: PresetStore
-    var selectedPresetId: Preset.ID?
+    var selectedPreset: Preset?
     
     var body: some View {
-        if let selectedPresetId = selectedPresetId,
+        if let selectedPresetId = selectedPreset?.id,
            let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
             PresetPreview(preset: $store.presets[index])
         } else {

@@ -13,7 +13,7 @@ struct Fluid_Gradient_ComposerApp: App {
     
     var body: some Scene {
         WindowGroup {
-            PresetManagerView(store: presetStore)
+            PresetManager(store: presetStore)
         }
     }
 }

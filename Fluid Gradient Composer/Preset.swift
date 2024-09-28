@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Preset: Codable, Identifiable {
+struct Preset: Codable, Identifiable, Hashable {
     enum BuiltinColor: Codable, CaseIterable {
         case blue, green, yellow, orange, red, pink, purple, teal, indigo
     }

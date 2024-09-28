@@ -1,5 +1,5 @@
 //
-//  PresetEditorView.swift
+//  PresetEditor.swift
 //  Fluid Gradient Composer
 //
 //  Created by Samuel He on 2024/9/16.
@@ -8,7 +8,7 @@
 import SwiftUI
 import FluidGradient
 
-struct PresetEditorView: View {
+struct PresetEditor: View {
     @Binding var preset: Preset
     @State private var originalPreset: Preset
     @State private var showDiscardChangesAlert: Bool = false
@@ -53,7 +53,7 @@ struct PresetEditorView: View {
                     Button("Discard Changes", role: .destructive) {
                         preset = originalPreset
                     }
-                    Button("Save and exit") {
+                    Button("Save and dismiss") {
                         dismiss()
                     }
                 }
