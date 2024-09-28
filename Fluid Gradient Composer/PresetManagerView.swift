@@ -9,20 +9,20 @@ import SwiftUI
 
 struct PresetManagerView: View {
     @ObservedObject var store: PresetStore
-    @State private var selectedPresetID: FGCPreset.ID?
+    @State private var selectedPresetId: FGCPreset.ID?
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
     @State private var editingPreset: FGCPreset?
     
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedPresetID) {
+            List(selection: $selectedPresetId) {
                 ForEach(store.presets) { preset in
                     NavigationLink(value: preset.id) {
                         VStack(alignment: .leading) {
                             Text(preset.name)
                         }
-                        .contextMenu { presetContextMenu(presetID: preset.id) }
+                        .contextMenu { contextMenu(forPresetId: preset.id) }
                     }
                 }
                 .onDelete { indexSet in
@@ -36,8 +36,8 @@ struct PresetManagerView: View {
             }
             .navigationTitle("Presets")
             .toolbar { managerToolbar }
-            .navigationDestination(for: FGCPreset.ID.self) { presetID in
-                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+            .navigationDestination(for: FGCPreset.ID.self) { presetId in
+                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
                     PresetPreview(preset: $store.presets[index])
                 }
             }
@@ -52,30 +52,25 @@ struct PresetManagerView: View {
                 Text("Cannot delete the default preset.")
             }
         } detail: {
-            detailView
-        }
-    }
-    
-    @ViewBuilder
-    private var detailView: some View {
-        if let selectedID = selectedPresetID,
-           let index = store.presets.firstIndex(where: { $0.id == selectedID }) {
-            PresetPreview(preset: $store.presets[index])
-        } else {
-            VStack(spacing: 15) {
-                Text("Welcome!")
-                    .font(.largeTitle)
-                Text("Choose a preset to start")
-                    .foregroundStyle(.gray)
+            if let selectedPresetId = selectedPresetId,
+               let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
+                PresetPreview(preset: $store.presets[index])
+            } else {
+                VStack(spacing: 15) {
+                    Text("Welcome!")
+                        .font(.largeTitle)
+                    Text("Choose a preset to start")
+                        .foregroundStyle(.gray)
+                }
             }
         }
     }
-        
-    private func presetContextMenu(presetID: FGCPreset.ID) -> some View {
+    
+    private func contextMenu(forPresetId presetId: FGCPreset.ID) -> some View {
         Group {
             Button(role: .destructive) {
                 do {
-                    try store.deletePreset(withID: presetID)
+                    try store.deletePreset(withId: presetId)
                 } catch FGCStoreError.cannotDeleteDefaultPreset {
                     showCannotDeleteDefaultPresetAlert = true
                     logger.warning("Cannot delete default preset")
@@ -86,9 +81,9 @@ struct PresetManagerView: View {
                 Text("Delete")
             }
             Button("Edit") {
-                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
                     editingPreset = store.presets[index]
-                    logger.info("Editing preset \(presetID)")
+                    logger.info("Editing preset \(presetId)")
                 }
             }
         }
@@ -108,8 +103,8 @@ struct PresetManagerView: View {
     private var managerToolbar: some ToolbarContent {
         ToolbarItemGroup {
             Button {
-                let presetID = withAnimation { store.newPreset(withName: "Untitled") }
-                if let index = store.presets.firstIndex(where: { $0.id == presetID }) {
+                let presetId = withAnimation { store.newPreset(withName: "Untitled") }
+                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
                     editingPreset = store.presets[index]
                 }
             } label: {

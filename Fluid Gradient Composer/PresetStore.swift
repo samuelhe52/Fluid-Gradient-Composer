@@ -81,7 +81,7 @@ class PresetStore: ObservableObject {
         logger.info("Deleted \(indexSet.count) preset(s).")
     }
     
-    func deletePreset(withID id: FGCPreset.ID) throws {
+    func deletePreset(withId id: FGCPreset.ID) throws {
         guard id != FGCPreset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
         disablingAutoSave { presets.removeAll { $0.id == id } }
         logger.info("Deleted preset with ID: \"\(id, privacy: .public)\".")
