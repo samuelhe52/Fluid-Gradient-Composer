@@ -9,14 +9,14 @@ import SwiftUI
 import FluidGradient
 
 struct PresetEditorView: View {
-    @Binding var preset: FGCPreset
-    @State private var originalPreset: FGCPreset
+    @Binding var preset: Preset
+    @State private var originalPreset: Preset
     @State private var showDiscardChangesAlert: Bool = false
     
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
     
-    init(preset: Binding<FGCPreset>) {
+    init(preset: Binding<Preset>) {
         self._preset = preset
         self.originalPreset = preset.wrappedValue
     }
@@ -82,19 +82,19 @@ struct PresetEditorView: View {
         }
     }
     
-    private var isDefaultPreset: Bool { preset.id == FGCPreset.default.id }
+    private var isDefaultPreset: Bool { preset.id == Preset.default.id }
     
     private func randomizeColors() {
-        preset.colors = FGCPreset.generateRandomColors().colors
+        preset.colors = Preset.generateRandomColors().colors
     }
     
     private func randomizeHighlights() {
-        preset.highlights = FGCPreset.generateRandomColors().highlights
+        preset.highlights = Preset.generateRandomColors().highlights
     }
 }
 
 struct ColorPalette: View {
-    @Binding var colors: [FGCPreset.BuiltinColor]
+    @Binding var colors: [Preset.BuiltinColor]
     var randomizeColors: () -> Void
     
     @State private var editingColorIndex: Int?
@@ -116,7 +116,7 @@ struct ColorPalette: View {
 }
 
 struct ColorBlob: View {
-    @Binding var color: FGCPreset.BuiltinColor
+    @Binding var color: Preset.BuiltinColor
     @State private var isEditing: Bool = false
     
     var body: some View {
@@ -126,7 +126,7 @@ struct ColorBlob: View {
             .popover(isPresented: $isEditing) {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(FGCPreset.BuiltinColor.allCases, id: \.self) { optionColor in
+                        ForEach(Preset.BuiltinColor.allCases, id: \.self) { optionColor in
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(optionColor.displayColor)
                                 .frame(width: 40, height: 40)

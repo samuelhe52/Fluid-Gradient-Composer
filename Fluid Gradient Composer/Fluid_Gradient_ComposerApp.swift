@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct Fluid_Gradient_ComposerApp: App {
+    @State var presetStore: PresetStore = .init()
+    
     var body: some Scene {
         WindowGroup {
-            PresetManagerView(store: .init())
+            PresetManagerView(store: presetStore)
         }
     }
 }

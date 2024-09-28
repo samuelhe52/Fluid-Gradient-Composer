@@ -9,7 +9,7 @@ import SwiftUI
 import FluidGradient
 
 struct PresetPreview: View {
-    @Binding var preset: FGCPreset
+    @Binding var preset: Preset
     
     @State private var isEditing: Bool = false
     

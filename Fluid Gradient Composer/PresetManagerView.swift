@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct PresetManagerView: View {
-    @ObservedObject var store: PresetStore
-    @State private var selectedPresetId: FGCPreset.ID?
+    @Bindable var store: PresetStore
+    @State private var selectedPresetId: Preset.ID?
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
-    @State private var editingPreset: FGCPreset?
+    @State private var editingPreset: Preset?
     
     var body: some View {
         NavigationSplitView {
@@ -36,37 +36,17 @@ struct PresetManagerView: View {
             }
             .navigationTitle("Presets")
             .toolbar { managerToolbar }
-            .navigationDestination(for: FGCPreset.ID.self) { presetId in
-                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
-                    PresetPreview(preset: $store.presets[index])
-                }
-            }
             .sheet(item: $editingPreset) { preset in
                 if let index = store.presets.firstIndex(where: { $0.id == preset.id }) {
                     PresetEditorView(preset: $store.presets[index])
                 }
             }
-            .alert("Delete Preset", isPresented: $showCannotDeleteDefaultPresetAlert) {
-                Button("OK") {}
-            } message: {
-                Text("Cannot delete the default preset.")
-            }
         } detail: {
-            if let selectedPresetId = selectedPresetId,
-               let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
-                PresetPreview(preset: $store.presets[index])
-            } else {
-                VStack(spacing: 15) {
-                    Text("Welcome!")
-                        .font(.largeTitle)
-                    Text("Choose a preset to start")
-                        .foregroundStyle(.gray)
-                }
-            }
+            PresetDetail(store: store, selectedPresetId: selectedPresetId)
         }
     }
     
-    private func contextMenu(forPresetId presetId: FGCPreset.ID) -> some View {
+    private func contextMenu(forPresetId presetId: Preset.ID) -> some View {
         Group {
             Button(role: .destructive) {
                 do {
@@ -79,6 +59,11 @@ struct PresetManagerView: View {
                 }
             } label: {
                 Text("Delete")
+            }
+            .alert("Delete Preset", isPresented: $showCannotDeleteDefaultPresetAlert) {
+                Button("OK") { }
+            } message: {
+                Text("Cannot delete the default preset.")
             }
             Button("Edit") {
                 if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
@@ -115,6 +100,21 @@ struct PresetManagerView: View {
     }
 }
 
-#Preview {
-    PresetManagerView(store: .init())
+struct PresetDetail: View {
+    @Bindable var store: PresetStore
+    var selectedPresetId: Preset.ID?
+    
+    var body: some View {
+        if let selectedPresetId = selectedPresetId,
+           let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
+            PresetPreview(preset: $store.presets[index])
+        } else {
+            VStack(spacing: 15) {
+                Text("Welcome!")
+                    .font(.largeTitle)
+                Text("Choose a preset to start")
+                    .foregroundStyle(.gray)
+            }
+        }
+    }
 }
