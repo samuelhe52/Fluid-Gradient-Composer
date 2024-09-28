@@ -11,9 +11,24 @@ import SwiftUI
 struct Fluid_Gradient_ComposerApp: App {
     @State var presetStore: PresetStore = .init()
     
+    @AppStorage("ColorSchemeMode") private var colorSchemeMode: ColorSchemeMode = .system
+    @Environment(\.colorScheme) private var systemColorScheme
+    
     var body: some Scene {
         WindowGroup {
             PresetManager(store: presetStore)
+                .preferredColorScheme(getColorScheme())
+        }
+    }
+    
+    private func getColorScheme() -> ColorScheme {
+        switch colorSchemeMode {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .system:
+            return systemColorScheme
         }
     }
 }
