@@ -12,7 +12,7 @@ struct PresetEditor: View {
     @Binding var preset: Preset
     @State private var originalPreset: Preset
     @State private var showDiscardChangesAlert: Bool = false
-    
+        
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
     
@@ -64,19 +64,25 @@ struct PresetEditor: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        showDiscardChangesAlert = true
+                        if !(originalPreset == preset) {
+                            showDiscardChangesAlert = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 ToolbarItem(placement: .automatic) {
                     Button("Done") { dismiss() }
                 }
             }
-            .alert("Discard Changes?", isPresented: $showDiscardChangesAlert) {
+            .confirmationDialog("Are you sure you want to discard changes?",
+                                isPresented: $showDiscardChangesAlert,
+                                titleVisibility: .visible) {
                 Button("Discard", role: .destructive) {
                     preset = originalPreset
                     dismiss()
                 }
-                Button("Save") { dismiss() }
+                Button("Save and dismiss") { dismiss() }
                 Button("Cancel", role: .cancel) {}
             }
         }

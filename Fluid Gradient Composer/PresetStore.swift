@@ -16,40 +16,57 @@ class PresetStore {
     var presets: [Preset] {
         didSet { autosave() }
     }
+    private var presetIds: Set<Preset.ID> { Set(presets.map(\.id)) }
     
-    private let presetsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("Fluid-Gradient-Presets.json")
+    private let configURL = URL.documentsDirectory.appendingPathComponent("Fluid-Gradient-Config.json")
+    private var pinnedPresetsIds: Set<Preset.ID> = [] {
+        didSet { autosave() }
+    }
+    
+    var pinnedPresets: [Preset] {
+        presets.filter { isPresetPinned($0.id) }
+    }
+    var unpinnedPresets: [Preset] {
+        presets.filter { !isPresetPinned($0.id) }
+    }
+
+    func isPresetPinned(_ id: Preset.ID) -> Bool {
+        return pinnedPresetsIds.contains(id)
+    }
     
     private var autosaveEnabled: Bool = true
     
     private func autosave() {
         if autosaveEnabled {
-            save(to: presetsURL)
-            logger.info("Autosaved to \(self.presetsURL).")
+            save(to: configURL)
+            logger.info("Autosaved to \(self.configURL).")
         }
     }
     
     private func save(to url: URL) {
         do {
-            let settingsData = try JSONEncoder().encode(presets)
-            try settingsData.write(to: url)
+            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetsIds)
+            let configData = try JSONEncoder().encode(config)
+            try configData.write(to: url)
         } catch {
             logger.error("Error saving presets to: \(url): \(error.localizedDescription).")
         }
     }
     
     init() {
-        if let existingPresetsData = try? Data(contentsOf: presetsURL),
-           let existingPresets = try? JSONDecoder().decode([Preset].self,
-                                                           from: existingPresetsData)
+        if let existingConfigData = try? Data(contentsOf: configURL),
+           let config = try? JSONDecoder().decode(Config.self,
+                                                  from: existingConfigData)
         {
-            self.presets = existingPresets
+            self.presets = config.presets
+            self.pinnedPresetsIds = config.pinnedPresetIds
         } else {
             self.presets = [.default]
         }
     }
     
     // MARK: - Intents
-    func addNewPreset(withName name: String) -> Preset.ID {
+    func createNewPreset(withName name: String) -> Preset.ID {
         var presetName = name
         var counter = 1
         while nameCollision(presetName) {
@@ -59,17 +76,31 @@ class PresetStore {
         
         let randomColors = Preset.generateRandomColors()
         let preset = Preset(name: presetName,
-                               colors: randomColors.colors,
-                               speed: 1,
-                               highlights: randomColors.highlights)
+                            colors: randomColors.colors,
+                            speed: 1,
+                            highlights: randomColors.highlights)
         presets.append(preset)
         logger.info("Added preset \"\(presetName, privacy: .public)\".")
         
         return preset.id
+    }
 
-        func nameCollision(_ name: String) -> Bool {
-            presets.map { $0.name }.contains(name)
+    func addNewPreset(fromURL url: URL) throws {
+        let presetData = try Data(contentsOf: url)
+        var preset = try JSONDecoder().decode(Preset.self, from: presetData)
+        
+        var counter = 1
+        while nameCollision(preset.name) {
+            preset.name += " (\(counter))"
+            counter += 1
         }
+        preset.id = UUID() // Create a new UUID for imported presets
+        presets.append(preset)
+        logger.info("Added preset with name: \"\(preset.name, privacy: .public)\"")
+    }
+    
+    private func nameCollision(_ name: String) -> Bool {
+        presets.map { $0.name }.contains(name)
     }
     
     func deletePreset(at indexSet: IndexSet) throws {
@@ -101,6 +132,37 @@ class PresetStore {
             autosaveEnabled = true
         }
         action()
+    }
+    
+    func exportPreset(_ preset: Preset) -> URL? {
+        logger.debug("Export preset called: \(preset.name, privacy: .public)")
+        do {
+            let presetData = try JSONEncoder().encode(preset)
+            let url = URL.temporaryDirectory.appendingPathComponent("\(preset.name).json")
+            try presetData.write(to: url, options: [.atomic])
+            return url
+        } catch {
+            logger.error("Failed to export preset: \(error)")
+        }
+        return nil
+    }
+    
+    func pin(withPresetId: Preset.ID) {
+        if presetIds.contains(withPresetId) {
+            pinnedPresetsIds.insert(withPresetId)
+        } else {
+            logger.fault("Preset not found: \(withPresetId)")
+        }
+        logger.info("Pinned Preset: \(withPresetId)")
+    }
+    
+    func unpin(withPresetId: Preset.ID) {
+        if isPresetPinned(withPresetId) {
+            pinnedPresetsIds.remove(withPresetId)
+            logger.info("Unpinned Preset: \(withPresetId)")
+        } else {
+            logger.fault("Preset not found: \(withPresetId)")
+        }
     }
 }
 
