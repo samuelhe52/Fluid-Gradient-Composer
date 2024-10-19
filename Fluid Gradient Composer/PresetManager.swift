@@ -109,7 +109,7 @@ struct PresetManager: View {
                 Label("Import", systemImage: "square.and.arrow.down")
             }
             .fileImporter(isPresented: $importingPreset,
-                          allowedContentTypes: [.json],
+                          allowedContentTypes: [.fgcpreset],
                           allowsMultipleSelection: true) { results in
                 switch results {
                 case .success(let urls):

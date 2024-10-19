@@ -8,8 +8,13 @@
 import Foundation
 import SwiftUI
 import os
+import UniformTypeIdentifiers
 
-let logger = Logger(subsystem: "com.samuelhe.FluidGradientComposer", category: "general")
+extension UTType {
+    static let fgcpreset = UTType(exportedAs: "com.samuelhe.fgcpreset")
+}
+
+let logger = Logger(subsystem: "com.samuelhe.fluidgradientcomposer", category: "general")
 
 @Observable
 class PresetStore {
@@ -18,7 +23,9 @@ class PresetStore {
     }
     private var presetIds: Set<Preset.ID> { Set(presets.map(\.id)) }
     
-    private let configURL = URL.documentsDirectory.appendingPathComponent("Fluid-Gradient-Config.json")
+    private let configURL = URL.documentsDirectory
+        .appendingPathComponent("Fluid-Gradient-Config")
+        .appendingPathExtension(for: .fgcpreset)
     private var pinnedPresetsIds: Set<Preset.ID> = [] {
         didSet { autosave() }
     }
@@ -138,7 +145,9 @@ class PresetStore {
         logger.debug("Export preset called: \(preset.name, privacy: .public)")
         do {
             let presetData = try JSONEncoder().encode(preset)
-            let url = URL.temporaryDirectory.appendingPathComponent("\(preset.name).json")
+            let url = URL.temporaryDirectory
+                .appendingPathComponent(preset.name)
+                .appendingPathExtension(for: .fgcpreset)
             try presetData.write(to: url, options: [.atomic])
             return url
         } catch {
