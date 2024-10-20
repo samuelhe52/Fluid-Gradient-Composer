@@ -10,27 +10,50 @@ import FluidGradient
 
 struct PresetPreview: View {
     @Binding var preset: Preset
-    
     @State private var isEditing: Bool = false
+    
+    var isLocked: Bool = false
+    var unlock: () -> Void
+    var lock: () -> Void
+    @State var showLockedHint: Bool = false
     
     var body: some View {
         VStack {
             gradient
                 .clipShape(RoundedRectangle(cornerRadius: 25))
-            Slider(value: $preset.speed, in: 0...5)
-            HStack {
-                Button("Randomize") { preset.randomizeColors() }
-                Spacer()
-                Button("Edit") {
-                    isEditing = true
-                    logger.info("Editing preset \(preset.id)")
+            if !isLocked {
+                Slider(value: $preset.speed, in: 0...5)
+                HStack {
+                    Button("Randomize") { preset.randomizeColors() }
+                    Spacer()
+                    Button("Lock", systemImage: "lock") {
+                        withAnimation {
+                            lock()
+                        }
+                    }.padding(.horizontal)
+                    Button("Edit") {
+                        isEditing = true
+                        logger.info("Editing preset \(preset.id)")
+                    }
                 }
+            } else {
+                Button {
+                    withAnimation {
+                        unlock()
+                    }
+                } label: {
+                    Image(systemName: "lock.slash")
+                        .font(.title)
+                }
+                .padding(.top)
             }
         }
         .sheet(isPresented: $isEditing) { PresetEditor(preset: $preset) }
         .navigationTitle(preset.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ColorSchemeSwitcher() }
+        .toolbar {
+            ColorSchemeSwitcher()
+        }
         .padding()
     }
     

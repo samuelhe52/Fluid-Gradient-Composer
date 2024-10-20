@@ -48,6 +48,7 @@ struct PresetManager: View {
                 }
                 .contextMenu { contextMenu(forPreset: preset) }
             }
+            .deleteDisabled(store.isLocked(presetId: preset.id))
         }
         .onDelete { indexSet in
             let realIndices = indexSet.compactMap {
@@ -68,29 +69,49 @@ struct PresetManager: View {
         }
     }
     
+    @ViewBuilder
     private func contextMenu(forPreset preset: Preset) -> some View {
+        let locked = store.isLocked(presetId: preset.id)
+        let pinned = store.isPinned(presetId: preset.id)
         Group {
             Button {
                 editingPreset = preset
                 logger.info("Editing preset \(preset.name)")
-            } label: { Label("Edit", systemImage: "pencil") }
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }.disabled(locked)
             Button {
-                if store.isPresetPinned(preset.id) {
+                if pinned {
                     store.unpin(withPresetId: preset.id)
                 } else {
                     store.pin(withPresetId: preset.id)
                 }
             } label: {
-                Label(store.isPresetPinned(preset.id) ? "Unpin" : "Pin",
-                      systemImage: store.isPresetPinned(preset.id) ? "pin.slash" : "pin")
+                Label(pinned ? "Unpin" : "Pin",
+                      systemImage: pinned ? "pin.slash" : "pin")
             }
             LazyShareLink { [store.exportPreset(preset)!] }
+            Button {
+                if locked {
+                    withAnimation {
+                        store.unlock(withPresetId: preset.id)
+                    }
+                } else {
+                    withAnimation {
+                        store.lock(withPresetId: preset.id)
+                    }
+                }
+            } label: {
+                Label(locked ? "Unlock" : "Lock",
+                      systemImage: locked ? "lock.slash" : "lock")
+            }
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
                 deletePresets(at: IndexSet(indexSet))
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+            .disabled(locked)
             .alert("Delete Preset", isPresented: $showCannotDeleteDefaultPresetAlert) {
                 Button("OK") { }
             } message: {
@@ -160,7 +181,10 @@ struct PresetDetail: View {
     var body: some View {
         if let selectedPresetId = selectedPreset?.id,
            let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
-            PresetPreview(preset: $store.presets[index])
+            PresetPreview(preset: $store.presets[index],
+                          isLocked: store.isLocked(presetId: selectedPresetId),
+                          unlock: { store.unlock(withPresetId: selectedPresetId) },
+                          lock: { store.lock(withPresetId: selectedPresetId) })
         } else {
             VStack(spacing: 15) {
                 Text("Welcome!")

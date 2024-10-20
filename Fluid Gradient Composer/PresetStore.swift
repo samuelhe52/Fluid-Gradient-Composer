@@ -27,19 +27,26 @@ class PresetStore {
     private let configURL = URL.documentsDirectory
         .appendingPathComponent("Fluid-Gradient-Config")
         .appendingPathExtension(for: .fgcconfig)
-    private var pinnedPresetsIds: Set<Preset.ID> = [] {
+    private var pinnedPresetIds: Set<Preset.ID> = [] {
+        didSet { autosave() }
+    }
+    private var lockedPresetIds: Set<Preset.ID> = [] {
         didSet { autosave() }
     }
     
+    func isLocked(presetId id: Preset.ID) -> Bool {
+        return lockedPresetIds.contains(id)
+    }
+    
     var pinnedPresets: [Preset] {
-        presets.filter { isPresetPinned($0.id) }
+        presets.filter { isPinned(presetId: $0.id) }
     }
     var unpinnedPresets: [Preset] {
-        presets.filter { !isPresetPinned($0.id) }
+        presets.filter { !isPinned(presetId: $0.id) }
     }
 
-    func isPresetPinned(_ id: Preset.ID) -> Bool {
-        return pinnedPresetsIds.contains(id)
+    func isPinned(presetId id: Preset.ID) -> Bool {
+        return pinnedPresetIds.contains(id)
     }
     
     private var autosaveEnabled: Bool = true
@@ -53,7 +60,7 @@ class PresetStore {
     
     private func save(to url: URL) {
         do {
-            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetsIds)
+            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetIds, lockedPresetIds: lockedPresetIds)
             let configData = try JSONEncoder().encode(config)
             try configData.write(to: url)
         } catch {
@@ -67,7 +74,8 @@ class PresetStore {
                                                   from: existingConfigData)
         {
             self.presets = config.presets
-            self.pinnedPresetsIds = config.pinnedPresetIds
+            self.pinnedPresetIds = config.pinnedPresetIds ?? []
+            self.lockedPresetIds = config.lockedPresetIds ?? []
         } else {
             self.presets = [.default]
         }
@@ -105,6 +113,14 @@ class PresetStore {
         preset.id = UUID() // Create a new UUID for imported presets
         presets.append(preset)
         logger.info("Added preset with name: \"\(preset.name, privacy: .public)\"")
+    }
+    
+    func lock(withPresetId id: Preset.ID) {
+        lockedPresetIds.insert(id)
+    }
+    
+    func unlock(withPresetId id: Preset.ID) {
+        lockedPresetIds.remove(id)
     }
     
     private func nameCollision(_ name: String) -> Bool {
@@ -159,19 +175,19 @@ class PresetStore {
     
     func pin(withPresetId: Preset.ID) {
         if presetIds.contains(withPresetId) {
-            pinnedPresetsIds.insert(withPresetId)
+            pinnedPresetIds.insert(withPresetId)
         } else {
             logger.fault("Preset not found: \(withPresetId)")
         }
         logger.info("Pinned Preset: \(withPresetId)")
     }
     
-    func unpin(withPresetId: Preset.ID) {
-        if isPresetPinned(withPresetId) {
-            pinnedPresetsIds.remove(withPresetId)
-            logger.info("Unpinned Preset: \(withPresetId)")
+    func unpin(withPresetId id: Preset.ID) {
+        if isPinned(presetId: id) {
+            pinnedPresetIds.remove(id)
+            logger.info("Unpinned Preset: \(id)")
         } else {
-            logger.fault("Preset not found: \(withPresetId)")
+            logger.fault("Preset not found: \(id)")
         }
     }
 }
