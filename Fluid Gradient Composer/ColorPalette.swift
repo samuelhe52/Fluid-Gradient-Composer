@@ -10,22 +10,53 @@ import SwiftUI
 struct ColorPalette: View {
     @Binding var colors: [Preset.BuiltinColor]
     var randomizeColors: () -> Void
-    
-    @State private var editingColorIndex: Int?
-    
+        
     var body: some View {
-        Group {
+        ScrollView(.horizontal) {
             LazyHGrid(rows: [GridItem(.adaptive(minimum: 40))]) {
+                NewColor { colors.insert($0, at: 0) }
                 ForEach(colors.indices, id: \.self) { index in
                     EditableColorBlob(color: $colors[index])
-                }
-            }
-            Button("Randomize") {
-                withAnimation {
-                    randomizeColors()
+                        .overlay {
+                            removeSign
+                                .onTapGesture {
+                                    colors.remove(at: index)
+                                }
+                        }
                 }
             }
         }
+        .scrollIndicators(.hidden)
+        Button("Randomize") { randomizeColors() }
+    }
+    
+    private var removeSign: some View {
+        Image(systemName: "minus.circle.fill")
+            .font(.title3)
+            .foregroundStyle(.regularMaterial)
+            .offset(x: -15, y: -15)
+    }
+}
+
+struct NewColor: View {
+    @State private var isEditing: Bool = false
+    @State private var color: Preset.BuiltinColor = .blue
+    
+    var set: (Preset.BuiltinColor) -> Void
+    
+    var body: some View {
+        Image(systemName: "plus.app")
+            .foregroundStyle(.blue)
+            .font(.system(size: 43))
+            .popover(isPresented: $isEditing) {
+                ColorChooser(color: $color)
+            }
+            .onTapGesture {
+                isEditing = true
+            }
+            .onChange(of: color) {
+                set(color)
+            }
     }
 }
 
@@ -80,5 +111,12 @@ struct ColorChooser: View {
             .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
             .onAppear { proxy.scrollTo(color) }
         }
+    }
+}
+
+#Preview {
+    @Previewable @State var colors = Preset.defaultColors
+    ColorPalette(colors: $colors) {
+        colors = Preset.generateRandomColors().colors
     }
 }

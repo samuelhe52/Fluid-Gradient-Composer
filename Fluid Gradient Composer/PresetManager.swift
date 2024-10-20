@@ -55,6 +55,17 @@ struct PresetManager: View {
             }
             deletePresets(at: IndexSet(realIndices))
         }
+        .onMove { indexSet, newIndex in
+            let realIndices = indexSet.compactMap {
+                store.presets.firstIndex(of: presets[$0])
+            }
+            let realNewIndex = store.presets.firstIndex { preset in
+                preset.id == presets[newIndex].id
+            }
+            if let realNewIndex {
+                store.presets.move(fromOffsets: IndexSet(realIndices), toOffset: realNewIndex)
+            }
+        }
     }
     
     private func contextMenu(forPreset preset: Preset) -> some View {

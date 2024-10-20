@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static let fgcpreset = UTType(exportedAs: "com.samuelhe.fgcpreset")
+    static let fgcconfig = UTType(exportedAs: "com.samuelhe.fgcconfig")
 }
 
 let logger = Logger(subsystem: "com.samuelhe.fluidgradientcomposer", category: "general")
@@ -25,7 +26,7 @@ class PresetStore {
     
     private let configURL = URL.documentsDirectory
         .appendingPathComponent("Fluid-Gradient-Config")
-        .appendingPathExtension(for: .fgcpreset)
+        .appendingPathExtension(for: .fgcconfig)
     private var pinnedPresetsIds: Set<Preset.ID> = [] {
         didSet { autosave() }
     }

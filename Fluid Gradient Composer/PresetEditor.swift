@@ -12,7 +12,7 @@ struct PresetEditor: View {
     @Binding var preset: Preset
     @State private var originalPreset: Preset
     @State private var showDiscardChangesAlert: Bool = false
-        
+    
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
     
@@ -20,7 +20,7 @@ struct PresetEditor: View {
         self._preset = preset
         self.originalPreset = preset.wrappedValue
     }
-        
+    
     var body: some View {
         NavigationView {
             Form {
@@ -50,8 +50,14 @@ struct PresetEditor: View {
                     .aspectRatio(2/1, contentMode: .fit)
                 }
                 Section("Options") {
-                    Button("Discard Changes", role: .destructive) {
+                    Button("Discard changes", role: .destructive) {
                         preset = originalPreset
+                    }
+                    Button("Start from blank") {
+                        preset.colors.removeAll()
+                        preset.highlights.removeAll()
+                        preset.speed = 1
+                        preset.name = ""
                     }
                     Button("Save and dismiss") {
                         dismiss()
@@ -97,4 +103,9 @@ struct PresetEditor: View {
     private func randomizeHighlights() {
         preset.highlights = Preset.generateRandomColors().highlights
     }
+}
+
+#Preview {
+    @Previewable @State var preset = Preset.default
+    PresetEditor(preset: $preset)
 }

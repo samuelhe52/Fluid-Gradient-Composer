@@ -33,16 +33,23 @@ struct Preset: Codable, Identifiable, Hashable {
                                        highlights: defaultColors,
                                        id: .init(uuidString: "9A2F1A9E-4579-4B79-A99E-6477FF635A09") ?? .init())
     
+    static var blank: Self {
+        .init(name: "",
+              colors: [],
+              speed: 1,
+              highlights: [])
+    }
+    
     static let defaultColors: [BuiltinColor] = [.blue, .green, .yellow, .orange, .red]
     
-    static func generateRandomColors() -> (colors: [BuiltinColor], highlights: [BuiltinColor]) {
+    static func generateRandomColors(count: Int = 5) -> (colors: [BuiltinColor], highlights: [BuiltinColor]) {
         var colors: [Preset.BuiltinColor] = []
         var highlights: [Preset.BuiltinColor] = []
         let colorPool = Preset.BuiltinColor.allCases
-        for _ in 0...Int.random(in: 5...5) {
+        for _ in 0...(count - 1) {
             colors.append(colorPool.randomElement()!)
         }
-        for _ in 0...Int.random(in: 5...5) {
+        for _ in 0...(count - 1) {
             highlights.append(colorPool.randomElement()!)
         }
         
