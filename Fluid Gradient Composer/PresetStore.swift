@@ -212,6 +212,7 @@ extension Preset.BuiltinColor {
         case .purple: return .purple
         case .teal: return .teal
         case .indigo: return .indigo
+        case .custom(let hex): return Color(hex: hex) ?? .clear
         }
     }
 }

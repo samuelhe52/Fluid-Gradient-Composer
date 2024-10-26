@@ -27,6 +27,7 @@ struct ColorPalette: View {
             }
         }
         .scrollIndicators(.hidden)
+        .animation(.interactiveSpring(duration: 0.15), value: colors)
         Button("Randomize") { randomizeColors() }
     }
     
@@ -87,20 +88,34 @@ struct ColorBlob: View {
 struct ColorChooser: View {
     @Binding var color: Preset.BuiltinColor
     
+    @State var usingCustomColor: Bool = false
+    @State var customColor: Color = .clear
+    
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
                 HStack {
+                    ColorPicker("", selection: $customColor, supportsOpacity: false)
+                        .onChange(of: customColor) {
+                            usingCustomColor = true
+                        }
+                        .onDisappear {
+                            if customColor != .clear && usingCustomColor {
+                                color = .custom(customColor.toHex() ?? "")
+                            }
+                        }
+                        .padding(.trailing)
                     ForEach(Preset.BuiltinColor.allCases, id: \.self) { optionColor in
                         RoundedRectangle(cornerRadius: 8)
                             .fill(optionColor.displayColor)
                             .frame(width: 40, height: 40)
                             .onTapGesture {
+                                usingCustomColor = false
                                 color = optionColor
                             }
                             .overlay {
                                 Image(systemName: "checkmark")
-                                    .opacity(optionColor == color ? 1 : 0)
+                                    .opacity((optionColor == color && !usingCustomColor) ? 1 : 0)
                             }
                             .id(optionColor)
                     }

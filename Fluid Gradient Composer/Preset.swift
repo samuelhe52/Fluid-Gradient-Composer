@@ -8,8 +8,11 @@
 import Foundation
 
 struct Preset: Codable, Identifiable, Hashable {
-    enum BuiltinColor: Codable, CaseIterable {
+    enum BuiltinColor: Codable, CaseIterable, Hashable {
+        static let allCases: [Self] = [.blue, .green, .yellow, .orange, .red, .pink, .purple, .teal, .indigo]
+        
         case blue, green, yellow, orange, red, pink, purple, teal, indigo
+        case custom(String)
     }
     
     var name: String
