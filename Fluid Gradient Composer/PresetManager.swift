@@ -61,7 +61,7 @@ struct PresetManager: View {
                 store.presets.firstIndex(of: presets[$0])
             }
             let realNewIndex = store.presets.firstIndex { preset in
-                preset.id == presets[newIndex].id
+                preset.id == store.presets[newIndex].id
             }
             if let realNewIndex {
                 store.presets.move(fromOffsets: IndexSet(realIndices), toOffset: realNewIndex)
