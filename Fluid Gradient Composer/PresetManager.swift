@@ -9,14 +9,14 @@ import SwiftUI
 
 struct PresetManager: View {
     @Bindable var store: PresetStore
-    @State private var selectedPreset: Preset?
+    @State private var selectedPresetId: Preset.ID?
+    @State private var editingPreset: Preset?
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
-    @State private var editingPreset: Preset?
     
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedPreset) {
+            List(selection: $selectedPresetId) {
                 if !store.pinnedPresets.isEmpty {
                     Section("Pinned") {
                         buildPresetList(store.pinnedPresets)
@@ -36,25 +36,51 @@ struct PresetManager: View {
                 }
             }
         } detail: {
-            PresetDetail(store: store, selectedPreset: selectedPreset)
+            if let selectedPresetId,
+               let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
+                PresetPreview(
+                    preset: $store.presets[index],
+                    isLocked: store.isLocked(presetId: selectedPresetId),
+                    unlock: { store.unlock(withPresetId: selectedPresetId) },
+                    lock: { store.lock(withPresetId: selectedPresetId) }
+                )
+            } else {
+                VStack(spacing: 15) {
+                    Text("Welcome!")
+                        .font(.largeTitle)
+                    Text("Choose a preset to start")
+                        .foregroundStyle(.gray)
+                }
+            }
         }
     }
     
+    // MARK: - Preset List creation
+    @ViewBuilder
     private func buildPresetList(_ presets: [Preset]) -> some View {
         ForEach(presets) { preset in
-            NavigationLink(value: preset) {
+            let locked = store.isLocked(presetId: preset.id)
+            let pinned = store.isPinned(presetId: preset.id)
+            NavigationLink(value: preset.id) {
                 VStack(alignment: .leading) {
                     Text(preset.name)
                 }
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    if !locked {
+                        editButton(preset: preset, locked: locked)
+                    } else {
+                        toggleLockedButton(preset: preset, locked: locked)
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    if !locked {
+                        deleteButton(preset: preset, locked: locked)
+                    }
+                    pinButton(preset: preset, pinned: pinned)
+                    toggleLockedButton(preset: preset, locked: locked)
+                }
                 .contextMenu { contextMenu(forPreset: preset) }
             }
-            .deleteDisabled(store.isLocked(presetId: preset.id))
-        }
-        .onDelete { indexSet in
-            let realIndices = indexSet.compactMap {
-                store.presets.firstIndex(of: presets[$0])
-            }
-            deletePresets(at: IndexSet(realIndices))
         }
         .onMove { indexSet, newIndex in
             let realIndices = indexSet.compactMap {
@@ -68,43 +94,19 @@ struct PresetManager: View {
             }
         }
     }
-    
+
+    // MARK: - Context Menu
     @ViewBuilder
     private func contextMenu(forPreset preset: Preset) -> some View {
         let locked = store.isLocked(presetId: preset.id)
         let pinned = store.isPinned(presetId: preset.id)
         Group {
-            Button {
-                editingPreset = preset
-                logger.info("Editing preset \(preset.name)")
-            } label: {
-                Label("Edit", systemImage: "pencil")
-            }.disabled(locked)
-            Button {
-                if pinned {
-                    store.unpin(withPresetId: preset.id)
-                } else {
-                    store.pin(withPresetId: preset.id)
-                }
-            } label: {
-                Label(pinned ? "Unpin" : "Pin",
-                      systemImage: pinned ? "pin.slash" : "pin")
-            }
+            editButton(preset: preset, locked: locked)
+                .tint(.primary) // Override tint for context menu
+            pinButton(preset: preset, pinned: pinned)
+                .tint(.primary) // Override tint for context menu
             LazyShareLink { [store.exportPreset(preset)!] }
-            Button {
-                if locked {
-                    withAnimation {
-                        store.unlock(withPresetId: preset.id)
-                    }
-                } else {
-                    withAnimation {
-                        store.lock(withPresetId: preset.id)
-                    }
-                }
-            } label: {
-                Label(locked ? "Unlock" : "Lock",
-                      systemImage: locked ? "lock.slash" : "lock")
-            }
+            toggleLockedButton(preset: preset, locked: locked)
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
                 deletePresets(at: IndexSet(indexSet))
@@ -120,17 +122,7 @@ struct PresetManager: View {
         }
     }
     
-    private func deletePresets(at indexSet: IndexSet) {
-        do {
-            try store.deletePreset(at: indexSet)
-        } catch FGCStoreError.cannotDeleteDefaultPreset {
-            showCannotDeleteDefaultPresetAlert = true
-            logger.warning("Cannot delete default preset")
-        } catch {
-            logger.error("Failed to delete preset: \(error)")
-        }
-    }
-    
+    // MARK: - Toolbar
     @State private var importingPreset: Bool = false
     
     private var managerToolbar: some View {
@@ -172,26 +164,70 @@ struct PresetManager: View {
             }
         }
     }
-}
-
-struct PresetDetail: View {
-    @Bindable var store: PresetStore
-    var selectedPreset: Preset?
     
-    var body: some View {
-        if let selectedPresetId = selectedPreset?.id,
-           let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
-            PresetPreview(preset: $store.presets[index],
-                          isLocked: store.isLocked(presetId: selectedPresetId),
-                          unlock: { store.unlock(withPresetId: selectedPresetId) },
-                          lock: { store.lock(withPresetId: selectedPresetId) })
-        } else {
-            VStack(spacing: 15) {
-                Text("Welcome!")
-                    .font(.largeTitle)
-                Text("Choose a preset to start")
-                    .foregroundStyle(.gray)
+    // MARK: - Buttons
+    private func editButton(preset: Preset, locked: Bool) -> some View {
+        Button {
+            editingPreset = preset
+            logger.info("Editing preset \(preset.name)")
+        } label: {
+            Label("Edit", systemImage: "pencil")
+        }
+        .disabled(locked)
+        .tint(locked ? .gray : .blue)
+    }
+
+    private func deleteButton(preset: Preset, locked: Bool) -> some View {
+        Button(role: .destructive) {
+            do {
+                try store.deletePreset(withId: preset.id)
+            } catch {
+                logger.error("Failed to delete preset \(preset.name, privacy: .public): \(error)")
             }
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+        .disabled(locked)
+    }
+
+    private func pinButton(preset: Preset, pinned: Bool) -> some View {
+        Button {
+            if pinned {
+                store.unpin(withPresetId: preset.id)
+            } else {
+                store.pin(withPresetId: preset.id)
+            }
+        } label: {
+            Label(pinned ? "Unpin" : "Pin",
+                  systemImage: pinned ? "pin.slash" : "pin")
+        }
+        .tint(.orange)
+    }
+
+    private func toggleLockedButton(preset: Preset, locked: Bool) -> some View {
+        Button {
+            withAnimation {
+                if locked {
+                    store.unlock(withPresetId: preset.id)
+                } else {
+                    store.lock(withPresetId: preset.id)
+                }
+            }
+        } label: {
+            Label(locked ? "Unlock" : "Lock",
+                  systemImage: locked ? "lock.slash" : "lock")
+        }
+    }
+    
+    // MARK: - Tool functions
+    private func deletePresets(at indexSet: IndexSet) {
+        do {
+            try store.deletePreset(at: indexSet)
+        } catch FGCStoreError.cannotDeleteDefaultPreset {
+            showCannotDeleteDefaultPresetAlert = true
+            logger.warning("Cannot delete default preset")
+        } catch {
+            logger.error("Failed to delete preset: \(error)")
         }
     }
 }

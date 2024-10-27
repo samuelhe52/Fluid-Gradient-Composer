@@ -154,6 +154,7 @@ class PresetStore {
         autosaveEnabled = false
         defer {
             autosaveEnabled = true
+            autosave() // "Commit" the changes after the actions completed
         }
         action()
     }
