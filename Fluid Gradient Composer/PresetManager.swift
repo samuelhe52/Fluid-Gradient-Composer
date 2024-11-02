@@ -9,14 +9,13 @@ import SwiftUI
 
 struct PresetManager: View {
     @Bindable var store: PresetStore
-    @State private var selectedPresetId: Preset.ID?
     @State private var editingPreset: Preset?
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
     
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedPresetId) {
+            List {
                 if !store.pinnedPresets.isEmpty {
                     Section("Pinned") {
                         buildPresetList(store.pinnedPresets)
@@ -28,6 +27,16 @@ struct PresetManager: View {
                     }
                 }
             }
+            .navigationDestination(for: Preset.ID.self) { id in
+                if let index = store.presets.firstIndex(where: { $0.id == id }) {
+                    PresetPreview(
+                        preset: $store.presets[index],
+                        isLocked: store.isLocked(presetId: id),
+                        unlock: { store.unlock(withPresetId: id) },
+                        lock: { store.lock(withPresetId: id) }
+                    )
+                }
+            }
             .navigationTitle("Presets")
             .toolbar { managerToolbar }
             .sheet(item: $editingPreset) { preset in
@@ -36,21 +45,11 @@ struct PresetManager: View {
                 }
             }
         } detail: {
-            if let selectedPresetId,
-               let index = store.presets.firstIndex(where: { $0.id == selectedPresetId }) {
-                PresetPreview(
-                    preset: $store.presets[index],
-                    isLocked: store.isLocked(presetId: selectedPresetId),
-                    unlock: { store.unlock(withPresetId: selectedPresetId) },
-                    lock: { store.lock(withPresetId: selectedPresetId) }
-                )
-            } else {
-                VStack(spacing: 15) {
-                    Text("Welcome!")
-                        .font(.largeTitle)
-                    Text("Choose a preset to start")
-                        .foregroundStyle(.gray)
-                }
+            VStack(spacing: 15) {
+                Text("Welcome!")
+                    .font(.largeTitle)
+                Text("Choose a preset to start")
+                    .foregroundStyle(.gray)
             }
         }
     }
@@ -72,7 +71,7 @@ struct PresetManager: View {
                         toggleLockedButton(preset: preset, locked: locked)
                     }
                 }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     if !locked {
                         deleteButton(preset: preset, locked: locked)
                     }

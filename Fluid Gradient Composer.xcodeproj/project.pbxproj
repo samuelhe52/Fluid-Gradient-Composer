@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		9FB0483F2C8D545C00F9BD73 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB0483E2C8D545C00F9BD73 /* FluidGradient */; };
-		9FBBFB4F2CCD1C17006624B2 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FBBFB4E2CCD1C17006624B2 /* HexColor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,7 +28,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9FBBFB4E2CCD1C17006624B2 /* HexColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		9FE710C02C8D50F900D2B63B /* Fluid Gradient Composer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Fluid Gradient Composer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FE710D12C8D50FA00D2B63B /* Fluid Gradient ComposerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Fluid Gradient ComposerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FE710DB2C8D50FA00D2B63B /* Fluid Gradient ComposerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Fluid Gradient ComposerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,7 +87,6 @@
 		9FE710B72C8D50F900D2B63B = {
 			isa = PBXGroup;
 			children = (
-				9FBBFB4E2CCD1C17006624B2 /* HexColor.swift */,
 				9FE710C22C8D50F900D2B63B /* Fluid Gradient Composer */,
 				9FE710D42C8D50FA00D2B63B /* Fluid Gradient ComposerTests */,
 				9FE710DE2C8D50FA00D2B63B /* Fluid Gradient ComposerUITests */,
@@ -188,7 +185,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					9FE710BF2C8D50F900D2B63B = {
 						CreatedOnToolsVersion = 16.0;
@@ -256,7 +253,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9FBBFB4F2CCD1C17006624B2 /* HexColor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +320,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -385,6 +382,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -412,6 +410,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Fluid Gradient Composer/Fluid_Gradient_Composer.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Fluid Gradient Composer/Preview Content\"";
 				DEVELOPMENT_TEAM = LB52UWA223;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -456,6 +455,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Fluid Gradient Composer/Fluid_Gradient_Composer.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Fluid Gradient Composer/Preview Content\"";
 				DEVELOPMENT_TEAM = LB52UWA223;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -498,6 +498,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LB52UWA223;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -521,6 +522,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LB52UWA223;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -543,6 +545,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LB52UWA223;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -565,6 +568,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LB52UWA223;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
