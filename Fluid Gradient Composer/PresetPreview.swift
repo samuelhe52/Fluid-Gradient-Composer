@@ -19,12 +19,14 @@ struct PresetPreview: View {
     
     var body: some View {
         VStack {
-            gradient
+            GradientWindow(withPreset: preset)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
             if !isLocked {
                 Slider(value: $preset.speed, in: 0...5)
                 HStack {
-                    Button("Randomize") { preset.randomizeColors() }
+                    Button("Randomize") {
+                        preset.randomizeColors()
+                    }
                     Spacer()
                     Button("Lock", systemImage: "lock") {
                         withAnimation {
@@ -58,10 +60,4 @@ struct PresetPreview: View {
     }
     
     @State var displayDeleteDefaultWarning: Bool = false
-    
-    private var gradient: some View {
-        FluidGradient(blobs: preset.colors.displayColors,
-                      highlights: preset.highlights.displayColors,
-                      speed: preset.speed)
-    }
 }

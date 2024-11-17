@@ -18,6 +18,13 @@ struct Fluid_Gradient_ComposerApp: App {
         WindowGroup {
             PresetManager(store: presetStore)
                 .preferredColorScheme(getColorScheme())
+                .navigationTitle("Preset Manager")
+        }
+        
+        WindowGroup("FullscreenPreview", for: Preset.ID.self) { $presetId in
+            FullScreenPreview(presetId: $presetId)
+                .preferredColorScheme(getColorScheme())
+                .environment(presetStore)
         }
     }
     

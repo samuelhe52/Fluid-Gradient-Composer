@@ -10,6 +10,7 @@ import SwiftUI
 struct PresetManager: View {
     @Bindable var store: PresetStore
     @State private var editingPreset: Preset?
+    @Environment(\.openWindow) private var openWindow
     
     @State private var showCannotDeleteDefaultPresetAlert: Bool = false
     
@@ -68,7 +69,7 @@ struct PresetManager: View {
                     if !locked {
                         editButton(preset: preset, locked: locked)
                     } else {
-                        toggleLockedButton(preset: preset, locked: locked)
+                        lockButton(preset: preset, locked: locked)
                     }
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -76,7 +77,7 @@ struct PresetManager: View {
                         deleteButton(preset: preset, locked: locked)
                     }
                     pinButton(preset: preset, pinned: pinned)
-                    toggleLockedButton(preset: preset, locked: locked)
+                    lockButton(preset: preset, locked: locked)
                 }
                 .contextMenu { contextMenu(forPreset: preset) }
             }
@@ -105,7 +106,12 @@ struct PresetManager: View {
             pinButton(preset: preset, pinned: pinned)
                 .tint(.primary) // Override tint for context menu
             LazyShareLink { [store.exportPreset(preset)!] }
-            toggleLockedButton(preset: preset, locked: locked)
+            lockButton(preset: preset, locked: locked)
+            Button {
+                openWindow(value: preset.id)
+            } label: {
+                Label("Open in New Window", systemImage: "rectangle.inset.filled.on.rectangle")
+            }
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
                 deletePresets(at: IndexSet(indexSet))
@@ -203,7 +209,7 @@ struct PresetManager: View {
         .tint(.orange)
     }
 
-    private func toggleLockedButton(preset: Preset, locked: Bool) -> some View {
+    private func lockButton(preset: Preset, locked: Bool) -> some View {
         Button {
             withAnimation {
                 if locked {
