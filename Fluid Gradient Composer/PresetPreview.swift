@@ -11,6 +11,9 @@ import FluidGradient
 struct PresetPreview: View {
     @Binding var preset: Preset
     @State private var isEditing: Bool = false
+    @State private var showFullScreenPreview = false
+    @State private var showControl: Bool = false
+    @Environment(\.openWindow) private var openWindow
     
     var isLocked: Bool = false
     var unlock: () -> Void
@@ -21,6 +24,24 @@ struct PresetPreview: View {
         VStack {
             GradientWindow(withPreset: preset)
                 .clipShape(RoundedRectangle(cornerRadius: 25))
+                .onLongPressGesture { showControl = true }
+                .onTapGesture {
+                    if showControl {
+                        showControl.toggle()
+                    }
+                }
+                .overlay {
+                    controls
+                    .opacity(showControl ? 1 : 0)
+                }
+                .animation(.default, value: showControl)
+                .fullScreenCover(isPresented: $showFullScreenPreview) {
+                    DedicatedFullScreenPreview(coordinator: .shared)
+                        .onAppear {
+                            FullScreenPreviewCoordinator.shared.presentingPreset = preset
+                            showControl = false
+                        }
+                }
             if !isLocked {
                 Slider(value: $preset.speed, in: 0...5)
                 HStack {
@@ -60,4 +81,30 @@ struct PresetPreview: View {
     }
     
     @State var displayDeleteDefaultWarning: Bool = false
+    
+    @ViewBuilder
+    var controls: some View {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            Button {
+                showFullScreenPreview = true
+            } label: {
+                VStack {
+                    Image(systemName: "inset.filled.rectangle.portrait")
+                        .font(.largeTitle)
+                    Text("Preview in Full Screen")
+                }
+            }
+        } else {
+            Button {
+                openWindow(value: preset.id)
+                showControl = false
+            } label: {
+                VStack {
+                    Image(systemName: "rectangle.inset.filled.on.rectangle")
+                        .font(.largeTitle)
+                    Text("Preview in New Window")
+                }
+            }
+        }
+    }
 }

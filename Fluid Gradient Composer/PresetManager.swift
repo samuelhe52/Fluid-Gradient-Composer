@@ -107,7 +107,7 @@ struct PresetManager: View {
                 .tint(.primary) // Override tint for context menu
             LazyShareLink { [store.exportPreset(preset)!] }
             lockButton(preset: preset, locked: locked)
-            openInNewWindowButton(preset: preset)
+            fullScreenPreviewButton(preset: preset)
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
                 deletePresets(at: IndexSet(indexSet))
@@ -178,13 +178,23 @@ struct PresetManager: View {
     }
     
     @ViewBuilder
-    private func openInNewWindowButton(preset: Preset) -> some View {
+    private func fullScreenPreviewButton(preset: Preset) -> some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             Button {
                 openWindow(value: preset.id)
             } label: {
-                Label("Open in New Window", systemImage: "rectangle.inset.filled.on.rectangle")
+                Label("Open in New Window",
+                      systemImage: "rectangle.inset.filled.on.rectangle")
             }
+        } else {
+            NavigationLink {
+                FullScreenPreview(coordinator: .shared)
+                    .environment(store)
+            } label: {
+                Label("Full Screen Preview",
+                      systemImage: "inset.filled.rectangle.portrait")
+            }
+            .onAppear { FullScreenPreviewCoordinator.shared.presentingPresetId = preset.id }
         }
     }
     

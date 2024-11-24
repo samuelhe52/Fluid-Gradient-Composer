@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct Fluid_Gradient_ComposerApp: App {
     @State var presetStore: PresetStore = .init()
+    @State var coordinator: FullScreenPreviewCoordinator = .shared
     
     @AppStorage("ColorSchemeMode") private var colorSchemeMode: ColorSchemeMode = .system
     @Environment(\.colorScheme) private var systemColorScheme
@@ -21,8 +22,9 @@ struct Fluid_Gradient_ComposerApp: App {
                 .navigationTitle("Preset Manager")
         }
         
-        WindowGroup("FullscreenPreview", for: Preset.ID.self) { $presetId in
-            FullScreenPreview(presetId: $presetId)
+        WindowGroup("FullScreenPreview", for: Preset.ID.self) { $presetId in
+            FullScreenPreview(coordinator: coordinator)
+                .onAppear { coordinator.presentingPresetId = presetId }
                 .preferredColorScheme(getColorScheme())
                 .environment(presetStore)
         }
