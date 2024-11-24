@@ -107,11 +107,7 @@ struct PresetManager: View {
                 .tint(.primary) // Override tint for context menu
             LazyShareLink { [store.exportPreset(preset)!] }
             lockButton(preset: preset, locked: locked)
-            Button {
-                openWindow(value: preset.id)
-            } label: {
-                Label("Open in New Window", systemImage: "rectangle.inset.filled.on.rectangle")
-            }
+            openInNewWindowButton(preset: preset)
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
                 deletePresets(at: IndexSet(indexSet))
@@ -123,49 +119,6 @@ struct PresetManager: View {
                 Button("OK") { }
             } message: {
                 Text("Cannot delete the default preset.")
-            }
-        }
-    }
-    
-    // MARK: - Toolbar
-    @State private var importingPreset: Bool = false
-    
-    private var managerToolbar: some View {
-        Group {
-            Button {
-                importingPreset = true
-            } label: {
-                Label("Import", systemImage: "square.and.arrow.down")
-            }
-            .fileImporter(isPresented: $importingPreset,
-                          allowedContentTypes: [.fgcpreset],
-                          allowsMultipleSelection: true) { results in
-                switch results {
-                case .success(let urls):
-                    logger.debug("Importing presets: \(urls)")
-                    for url in urls {
-                        do {
-                            if url.startAccessingSecurityScopedResource() {
-                                defer { url.stopAccessingSecurityScopedResource() }
-                                try store.addNewPreset(fromURL: url)
-                            } else {
-                                logger.error("Failed to access security-scoped resource: \(url)")
-                            }
-                        } catch {
-                            logger.error("Failed to import preset: \(error)")
-                        }
-                    }
-                case .failure(let error):
-                    logger.error("Error importing presets: \(error)")
-                }
-            }
-            Button {
-                let presetId = withAnimation { store.createNewPreset(withName: "Untitled") }
-                if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
-                    editingPreset = store.presets[index]
-                }
-            } label: {
-                Label("New", systemImage: "plus")
             }
         }
     }
@@ -221,6 +174,68 @@ struct PresetManager: View {
         } label: {
             Label(locked ? "Unlock" : "Lock",
                   systemImage: locked ? "lock.slash" : "lock")
+        }
+    }
+    
+    @ViewBuilder
+    private func openInNewWindowButton(preset: Preset) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            Button {
+                openWindow(value: preset.id)
+            } label: {
+                Label("Open in New Window", systemImage: "rectangle.inset.filled.on.rectangle")
+            }
+        }
+    }
+    
+    // MARK: - Toolbar
+    @State private var importingPreset: Bool = false
+    
+    private var importButton: some View {
+        Button {
+            importingPreset = true
+        } label: {
+            Label("Import", systemImage: "square.and.arrow.down")
+        }
+        .fileImporter(isPresented: $importingPreset,
+                      allowedContentTypes: [.fgcpreset],
+                      allowsMultipleSelection: true) { results in
+            switch results {
+            case .success(let urls):
+                logger.debug("Importing presets: \(urls)")
+                for url in urls {
+                    do {
+                        if url.startAccessingSecurityScopedResource() {
+                            defer { url.stopAccessingSecurityScopedResource() }
+                            try store.addNewPreset(fromURL: url)
+                        } else {
+                            logger.error("Failed to access security-scoped resource: \(url)")
+                        }
+                    } catch {
+                        logger.error("Failed to import preset: \(error)")
+                    }
+                }
+            case .failure(let error):
+                logger.error("Error importing presets: \(error)")
+            }
+        }
+    }
+    
+    private var newPresetButton: some View {
+        Button {
+            let presetId = withAnimation { store.createNewPreset(withName: "Untitled") }
+            if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
+                editingPreset = store.presets[index]
+            }
+        } label: {
+            Label("New", systemImage: "plus")
+        }
+    }
+    
+    private var managerToolbar: some View {
+        Group {
+            importButton
+            newPresetButton
         }
     }
     
