@@ -8,6 +8,7 @@
 import SwiftUI
 import FluidGradient
 
+/// The universal component used to display a `FluidGradient` with a given `Preset`.
 struct GradientWindow: View {
     var preset: Preset
     

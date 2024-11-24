@@ -10,7 +10,8 @@ import SwiftUI
 struct FullScreenPreview: View {
     @Environment(PresetStore.self) var store
     @Binding var presetId: Preset.ID?
-    @State var showControls: Bool = false
+    @State private var showControls: Bool = false
+    @AppStorage("showTimeInFSPreview") private var showTime: Bool = false
     
     var body: some View {
         if let index = store.presets.firstIndex(where: { presetId == $0.id }) {
@@ -24,9 +25,14 @@ struct FullScreenPreview: View {
                     }
                 }
                 .overlay {
+                    ClockView()
+                        .opacity(showTime ? 0.8 : 0)
+                        .animation(.default, value: showTime)
+                        .offset(y: -250)
                     controls(currentPresetName: store.presets[index].name)
                         .opacity(showControls ? 0.8 : 0)
                 }
+                .statusBarHidden()
         } else {
             Text("No preset selected. This is a probably a bug.")
         }
@@ -39,6 +45,9 @@ struct FullScreenPreview: View {
                     Text(currentPresetName)
                         .font(.title)
                         .lineLimit(20)
+                    Toggle("Time", isOn: $showTime)
+                        .toggleStyle(.button)
+                        .scaleEffect(1.2)
                     Picker("Switch Preset", selection: $presetId) {
                         ForEach(store.presets) { preset in
                             Text(preset.name)
