@@ -24,7 +24,7 @@ class PresetStore {
     }
     private var presetIds: Set<Preset.ID> { Set(presets.map(\.id)) }
     
-    private let configURL = URL.documentsDirectory
+    static let configURL = URL.documentsDirectory
         .appendingPathComponent("Fluid-Gradient-Config")
         .appendingPathExtension(for: .fgcconfig)
     private var pinnedPresetIds: Set<Preset.ID> = [] {
@@ -46,8 +46,8 @@ class PresetStore {
     
     private func autosave() {
         if autosaveEnabled {
-            save(to: configURL)
-            logger.info("Autosaved to \(self.configURL).")
+            save(to: PresetStore.configURL)
+            logger.info("Autosaved to \(PresetStore.configURL).")
         }
     }
     
@@ -62,7 +62,19 @@ class PresetStore {
     }
     
     init() {
-        if let existingConfigData = try? Data(contentsOf: configURL),
+        if let existingConfigData = try? Data(contentsOf: PresetStore.configURL),
+           let config = try? JSONDecoder().decode(Config.self,
+                                                  from: existingConfigData)
+        {
+            self.presets = config.presets
+            self.pinnedPresetIds = config.pinnedPresetIds ?? []
+        } else {
+            self.presets = [.default]
+        }
+    }
+    
+    private func loadConfig() {
+        if let existingConfigData = try? Data(contentsOf: PresetStore.configURL),
            let config = try? JSONDecoder().decode(Config.self,
                                                   from: existingConfigData)
         {
@@ -175,10 +187,29 @@ class PresetStore {
             logger.fault("Preset not found: \(id)")
         }
     }
+    
+    func applyNewConfig(fromURL url: URL) throws {
+        let configData = try Data(contentsOf: url)
+        guard let config = try? JSONDecoder().decode(Config.self, from: configData) else {
+            logger.error("Failed to decode config file: \(url.path())")
+            throw FGCStoreError.configDecodeError
+        }
+        try applyNewConfig(config)
+    }
+    
+    func applyNewConfig(_ config: Config) throws {
+        let configData = try JSONEncoder().encode(config)
+        try configData.write(to: PresetStore.configURL)
+        loadConfig()
+    }
 }
 
-enum FGCStoreError: Error {
+enum FGCStoreError: LocalizedError {
     case cannotDeleteDefaultPreset
+    case fileImportError(Error)
+    case configDecodeError
+    // Use this very carefully!!!
+    case other(Error)
 }
 
 extension Array where Element == Preset.BuiltinColor {

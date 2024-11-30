@@ -213,15 +213,17 @@ struct PresetManager: View {
             case .success(let urls):
                 logger.debug("Importing presets: \(urls)")
                 for url in urls {
-                    do {
-                        if url.startAccessingSecurityScopedResource() {
-                            defer { url.stopAccessingSecurityScopedResource() }
-                            try store.addNewPreset(fromURL: url)
-                        } else {
-                            logger.error("Failed to access security-scoped resource: \(url)")
+                    withAnimation {
+                        do {
+                            if url.startAccessingSecurityScopedResource() {
+                                defer { url.stopAccessingSecurityScopedResource() }
+                                try store.addNewPreset(fromURL: url)
+                            } else {
+                                logger.error("Failed to access security-scoped resource: \(url)")
+                            }
+                        } catch {
+                            logger.error("Failed to import preset: \(error)")
                         }
-                    } catch {
-                        logger.error("Failed to import preset: \(error)")
                     }
                 }
             case .failure(let error):
@@ -241,8 +243,68 @@ struct PresetManager: View {
         }
     }
     
+    @State var showConfigManagementMenu: Bool = false
+    @State var applyingCustomConfig: Bool = false
+    @State var showFileImporter: Bool = false
+    @State var applyFailed: Bool = false
+    @State var applyError: FGCStoreError?
+    private var configManagement: some View {
+        Menu {
+            LazyShareLink("Export Config") { [PresetStore.configURL] }
+            Button { applyingCustomConfig = true } label: {
+                Label("Apply Custom Config", systemImage: "clock.arrow.2.circlepath")
+            }
+        } label: {
+            Label("Manage Config", systemImage: "arrow.2.circlepath.circle")
+        }
+        .confirmationDialog("Apply Custom Config",
+                            isPresented: $applyingCustomConfig) {
+            Button("Choose Custom Config") {
+                logger.info("Applying custom config...")
+                showFileImporter = true
+            }
+        } message: {
+            Text("Apply custom config? This will overwrite all existing presets.")
+        }
+        .alert(isPresented: $applyFailed,
+               error: applyError) { _ in
+            Button("OK", role: .cancel) { applyError = nil }
+        } message: { error in
+            Text("An error occurred while applying the custom config: \(error.localizedDescription).")
+        }
+        .fileImporter(isPresented: $showFileImporter,
+                      allowedContentTypes: [.fgcconfig]) { result in
+            switch result {
+            case .success(let configURL):
+                withAnimation {
+                    do {
+                        if configURL.startAccessingSecurityScopedResource() {
+                            defer { configURL.stopAccessingSecurityScopedResource() }
+                            try store.applyNewConfig(fromURL: configURL)
+                            logger.info("Applied custom config.")
+                        } else {
+                            logger.error("Failed to access config file.")
+                        }
+                    } catch let error as FGCStoreError {
+                        applyFailed = true
+                        applyError = error
+                    } catch {
+                        applyFailed = true
+                        applyError = .other(error)
+                        logger.error("Failed to apply config: \(error.localizedDescription).")
+                    }
+                }
+            case .failure(let error):
+                logger.error("Failed to apply config: \(error.localizedDescription)")
+                applyFailed = true
+                applyError = .fileImportError(error)
+            }
+        }
+    }
+    
     private var managerToolbar: some View {
         Group {
+            configManagement
             importButton
             newPresetButton
         }
