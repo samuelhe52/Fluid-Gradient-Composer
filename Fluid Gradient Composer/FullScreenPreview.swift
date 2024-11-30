@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-@Observable
+@Observable @MainActor
 class FullScreenPreviewCoordinator {
     var presentingPresetId: Preset.ID?
     var presentingPreset: Preset?
     
-    @MainActor static var shared = FullScreenPreviewCoordinator()
+    static var shared = FullScreenPreviewCoordinator()
 }
 
 // MARK: - Allow switching

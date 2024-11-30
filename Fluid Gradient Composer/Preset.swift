@@ -22,6 +22,12 @@ struct Preset: Codable, Identifiable, Hashable {
     
     var id: UUID = UUID()
     
+    var locked: Bool = false
+    
+    mutating func lock() { locked = true }
+    
+    mutating func unlock() { locked = false }
+    
     mutating func randomizeColors() {
         let randomColors = Preset.generateRandomColors()
         colors = randomColors.colors

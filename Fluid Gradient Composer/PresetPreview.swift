@@ -14,12 +14,7 @@ struct PresetPreview: View {
     @State private var showFullScreenPreview = false
     @State private var showControl: Bool = false
     @Environment(\.openWindow) private var openWindow
-    
-    var isLocked: Bool = false
-    var unlock: () -> Void
-    var lock: () -> Void
-    @State var showLockedHint: Bool = false
-    
+        
     var body: some View {
         VStack {
             GradientWindow(withPreset: preset)
@@ -42,7 +37,7 @@ struct PresetPreview: View {
                             showControl = false
                         }
                 }
-            if !isLocked {
+            if !preset.locked {
                 Slider(value: $preset.speed, in: 0...5)
                 HStack {
                     Button("Randomize") {
@@ -51,7 +46,7 @@ struct PresetPreview: View {
                     Spacer()
                     Button("Lock", systemImage: "lock") {
                         withAnimation {
-                            lock()
+                            preset.lock()
                         }
                     }.padding(.horizontal)
                     Button("Edit") {
@@ -62,7 +57,7 @@ struct PresetPreview: View {
             } else {
                 Button {
                     withAnimation {
-                        unlock()
+                        preset.unlock()
                     }
                 } label: {
                     Image(systemName: "lock.slash")
@@ -107,4 +102,9 @@ struct PresetPreview: View {
             }
         }
     }
+}
+
+#Preview {
+    @Previewable @State var preset = Preset.default
+    PresetPreview(preset: $preset)
 }

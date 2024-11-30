@@ -30,13 +30,6 @@ class PresetStore {
     private var pinnedPresetIds: Set<Preset.ID> = [] {
         didSet { autosave() }
     }
-    private var lockedPresetIds: Set<Preset.ID> = [] {
-        didSet { autosave() }
-    }
-    
-    func isLocked(presetId id: Preset.ID) -> Bool {
-        return lockedPresetIds.contains(id)
-    }
     
     var pinnedPresets: [Preset] {
         presets.filter { isPinned(presetId: $0.id) }
@@ -60,7 +53,7 @@ class PresetStore {
     
     private func save(to url: URL) {
         do {
-            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetIds, lockedPresetIds: lockedPresetIds)
+            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetIds)
             let configData = try JSONEncoder().encode(config)
             try configData.write(to: url)
         } catch {
@@ -75,7 +68,6 @@ class PresetStore {
         {
             self.presets = config.presets
             self.pinnedPresetIds = config.pinnedPresetIds ?? []
-            self.lockedPresetIds = config.lockedPresetIds ?? []
         } else {
             self.presets = [.default]
         }
@@ -113,14 +105,6 @@ class PresetStore {
         preset.id = UUID() // Create a new UUID for imported presets
         presets.append(preset)
         logger.info("Added preset with name: \"\(preset.name, privacy: .public)\"")
-    }
-    
-    func lock(withPresetId id: Preset.ID) {
-        lockedPresetIds.insert(id)
-    }
-    
-    func unlock(withPresetId id: Preset.ID) {
-        lockedPresetIds.remove(id)
     }
     
     private func nameCollision(_ name: String) -> Bool {

@@ -30,12 +30,7 @@ struct PresetManager: View {
             }
             .navigationDestination(for: Preset.ID.self) { id in
                 if let index = store.presets.firstIndex(where: { $0.id == id }) {
-                    PresetPreview(
-                        preset: $store.presets[index],
-                        isLocked: store.isLocked(presetId: id),
-                        unlock: { store.unlock(withPresetId: id) },
-                        lock: { store.lock(withPresetId: id) }
-                    )
+                    PresetPreview(preset: $store.presets[index])
                 }
             }
             .navigationTitle("Presets")
@@ -59,7 +54,7 @@ struct PresetManager: View {
     @ViewBuilder
     private func buildPresetList(_ presets: [Preset]) -> some View {
         ForEach(presets) { preset in
-            let locked = store.isLocked(presetId: preset.id)
+            let locked = preset.locked
             let pinned = store.isPinned(presetId: preset.id)
             NavigationLink(value: preset.id) {
                 VStack(alignment: .leading) {
@@ -67,17 +62,17 @@ struct PresetManager: View {
                 }
                 .swipeActions(edge: .leading, allowsFullSwipe: true) {
                     if !locked {
-                        editButton(preset: preset, locked: locked)
+                        editButton(preset: preset)
                     } else {
-                        lockButton(preset: preset, locked: locked)
+                        lockButton(presetId: preset.id)
                     }
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     if !locked {
-                        deleteButton(preset: preset, locked: locked)
+                        deleteButton(preset: preset)
                     }
                     pinButton(preset: preset, pinned: pinned)
-                    lockButton(preset: preset, locked: locked)
+                    lockButton(presetId: preset.id)
                 }
                 .contextMenu { contextMenu(forPreset: preset) }
             }
@@ -98,15 +93,15 @@ struct PresetManager: View {
     // MARK: - Context Menu
     @ViewBuilder
     private func contextMenu(forPreset preset: Preset) -> some View {
-        let locked = store.isLocked(presetId: preset.id)
+        let locked = preset.locked
         let pinned = store.isPinned(presetId: preset.id)
         Group {
-            editButton(preset: preset, locked: locked)
+            editButton(preset: preset)
                 .tint(.primary) // Override tint for context menu
             pinButton(preset: preset, pinned: pinned)
                 .tint(.primary) // Override tint for context menu
             LazyShareLink { [store.exportPreset(preset)!] }
-            lockButton(preset: preset, locked: locked)
+            lockButton(presetId: preset.id)
             fullScreenPreviewButton(preset: preset)
             Button(role: .destructive) {
                 let indexSet = [store.presets.firstIndex(of: preset)].compactMap(\.self)
@@ -124,18 +119,18 @@ struct PresetManager: View {
     }
     
     // MARK: - Buttons
-    private func editButton(preset: Preset, locked: Bool) -> some View {
+    private func editButton(preset: Preset) -> some View {
         Button {
             editingPreset = preset
             logger.info("Editing preset \(preset.name)")
         } label: {
             Label("Edit", systemImage: "pencil")
         }
-        .disabled(locked)
-        .tint(locked ? .gray : .blue)
+        .disabled(preset.locked)
+        .tint(preset.locked ? .gray : .blue)
     }
 
-    private func deleteButton(preset: Preset, locked: Bool) -> some View {
+    private func deleteButton(preset: Preset) -> some View {
         Button(role: .destructive) {
             do {
                 try store.deletePreset(withId: preset.id)
@@ -145,7 +140,7 @@ struct PresetManager: View {
         } label: {
             Label("Delete", systemImage: "trash")
         }
-        .disabled(locked)
+        .disabled(preset.locked)
     }
 
     private func pinButton(preset: Preset, pinned: Bool) -> some View {
@@ -162,18 +157,22 @@ struct PresetManager: View {
         .tint(.orange)
     }
 
-    private func lockButton(preset: Preset, locked: Bool) -> some View {
-        Button {
-            withAnimation {
-                if locked {
-                    store.unlock(withPresetId: preset.id)
-                } else {
-                    store.lock(withPresetId: preset.id)
+    @ViewBuilder
+    private func lockButton(presetId: Preset.ID) -> some View {
+        if let index = store.presets.firstIndex(where: { $0.id == presetId }) {
+            let locked = store.presets[index].locked
+            Button {
+                withAnimation {
+                    if locked {
+                        store.presets[index].unlock()
+                    } else {
+                        store.presets[index].lock()
+                    }
                 }
+            } label: {
+                Label(locked ? "Unlock" : "Lock",
+                      systemImage: locked ? "lock.slash" : "lock")
             }
-        } label: {
-            Label(locked ? "Unlock" : "Lock",
-                  systemImage: locked ? "lock.slash" : "lock")
         }
     }
     

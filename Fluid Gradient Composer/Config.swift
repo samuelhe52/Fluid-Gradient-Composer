@@ -10,5 +10,4 @@ import Foundation
 struct Config: Codable {
     var presets: [Preset]
     var pinnedPresetIds: Set<Preset.ID>?
-    var lockedPresetIds: Set<Preset.ID>?
 }
