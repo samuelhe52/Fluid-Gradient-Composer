@@ -243,11 +243,12 @@ struct PresetManager: View {
         }
     }
     
+    // MARK: - Config Management
     @State var showConfigManagementMenu: Bool = false
     @State var applyingCustomConfig: Bool = false
     @State var showFileImporter: Bool = false
     @State var applyFailed: Bool = false
-    @State var applyError: FGCStoreError?
+    @State var applyError: PresetStoreError?
     private var configManagement: some View {
         Menu {
             LazyShareLink("Export Config") { [PresetStore.configURL] }
@@ -270,7 +271,7 @@ struct PresetManager: View {
                error: applyError) { _ in
             Button("OK", role: .cancel) { applyError = nil }
         } message: { error in
-            Text("An error occurred while applying the custom config: \(error.localizedDescription).")
+            Text("An error occurred while applying the custom config: \(error.localizedDescription)")
         }
         .fileImporter(isPresented: $showFileImporter,
                       allowedContentTypes: [.fgcconfig]) { result in
@@ -285,13 +286,21 @@ struct PresetManager: View {
                         } else {
                             logger.error("Failed to access config file.")
                         }
-                    } catch let error as FGCStoreError {
+                    } catch let error as PresetStoreError {
                         applyFailed = true
                         applyError = error
+                        logger.error("Failed to apply config: \(error.localizedDescription)")
+
+                    }
+                    catch let error as ConfigManagerError {
+                        applyFailed = true
+                        applyError = .configManagerError(error)
+                        logger.error("Failed to apply config: \(error.localizedDescription)")
+
                     } catch {
                         applyFailed = true
                         applyError = .other(error)
-                        logger.error("Failed to apply config: \(error.localizedDescription).")
+                        logger.error("Failed to apply config: \(error.localizedDescription)")
                     }
                 }
             case .failure(let error):
@@ -314,7 +323,7 @@ struct PresetManager: View {
     private func deletePresets(at indexSet: IndexSet) {
         do {
             try store.deletePreset(at: indexSet)
-        } catch FGCStoreError.cannotDeleteDefaultPreset {
+        } catch PresetStoreError.cannotDeleteDefaultPreset {
             showCannotDeleteDefaultPresetAlert = true
             logger.warning("Cannot delete default preset")
         } catch {

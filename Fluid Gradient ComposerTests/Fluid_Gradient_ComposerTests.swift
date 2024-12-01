@@ -6,11 +6,19 @@
 //
 
 import Testing
+@testable import Fluid_Gradient_Composer
 
 struct Fluid_Gradient_ComposerTests {
-
     @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+        let version1 = Config.Version(fromString: "1.0.0")!
+        let version2 = Config.Version(fromString: "1.0.1")!
+        let version3 = Config.Version(fromString: "1.2.2")!
+        let version4 = Config.Version(fromString: "0.1.1")!
+        let version5 = Config.Version(fromString: "0.1.1")!
+        #expect(version1 < version2)
+        #expect(version2 < version3)
+        #expect(version3 >= version4)
+        #expect(version4 == version5)
     }
 
 }

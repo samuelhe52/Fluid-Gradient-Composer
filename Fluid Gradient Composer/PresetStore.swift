@@ -25,12 +25,13 @@ class PresetStore {
     private var presetIds: Set<Preset.ID> { Set(presets.map(\.id)) }
     
     static let configURL = URL.documentsDirectory
-        .appendingPathComponent("Fluid-Gradient-Config")
+        .appendingPathComponent("FGCConfig")
         .appendingPathExtension(for: .fgcconfig)
     private var pinnedPresetIds: Set<Preset.ID> = [] {
         didSet { autosave() }
     }
     
+    // MARK: - Pinning
     var pinnedPresets: [Preset] {
         presets.filter { isPinned(presetId: $0.id) }
     }
@@ -42,41 +43,49 @@ class PresetStore {
         return pinnedPresetIds.contains(id)
     }
     
+    // MARK: - Saving config
     private var autosaveEnabled: Bool = true
     
     private func autosave() {
         if autosaveEnabled {
-            save(to: PresetStore.configURL)
+            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetIds)
+            ConfigManager.save(config, to: Self.configURL)
             logger.info("Autosaved to \(PresetStore.configURL).")
         }
     }
     
-    private func save(to url: URL) {
-        do {
-            let config = Config(presets: presets, pinnedPresetIds: pinnedPresetIds)
-            let configData = try JSONEncoder().encode(config)
-            try configData.write(to: url)
-        } catch {
-            logger.error("Error saving presets to: \(url): \(error.localizedDescription).")
+    /// Disables autosave when the action is taking place, allowing for making two changes and "commit" them once.
+    /// Autosave is re-enabled when the action is completed.
+    private func disablingAutoSave(action: () -> Void) {
+        autosaveEnabled = false
+        defer {
+            autosaveEnabled = true
+            autosave() // "Commit" the changes after the actions completed
         }
+        action()
     }
     
+    // MARK: - Init
     init() {
-        if let existingConfigData = try? Data(contentsOf: PresetStore.configURL),
-           let config = try? JSONDecoder().decode(Config.self,
-                                                  from: existingConfigData)
-        {
+        do {
+            let url = Self.configURL
+            if !FileManager.default.fileExists(atPath: url.path()) {
+                FileManager.default.createFile(atPath: url.path(),
+                                               contents: nil,
+                                               attributes: nil)
+            }
+            let config = try ConfigManager.decodeConfig(fromURL: url)
             self.presets = config.presets
             self.pinnedPresetIds = config.pinnedPresetIds ?? []
-        } else {
+            ConfigManager.save(config, to: Self.configURL)
+        } catch {
+            logger.error("Error reading config file: \(error.localizedDescription)")
             self.presets = [.default]
         }
     }
     
     private func loadConfig() {
-        if let existingConfigData = try? Data(contentsOf: PresetStore.configURL),
-           let config = try? JSONDecoder().decode(Config.self,
-                                                  from: existingConfigData)
+        if let config = try? ConfigManager.decodeConfig(fromURL: Self.configURL)
         {
             self.presets = config.presets
             self.pinnedPresetIds = config.pinnedPresetIds ?? []
@@ -126,7 +135,7 @@ class PresetStore {
     func deletePreset(at indexSet: IndexSet) throws {
         for index in indexSet {
             guard presets[index].id != Preset.default.id else {
-                throw FGCStoreError.cannotDeleteDefaultPreset
+                throw PresetStoreError.cannotDeleteDefaultPreset
             }
         }
         presets.remove(atOffsets: indexSet)
@@ -134,7 +143,7 @@ class PresetStore {
     }
     
     func deletePreset(withId id: Preset.ID) throws {
-        guard id != Preset.default.id else { throw FGCStoreError.cannotDeleteDefaultPreset }
+        guard id != Preset.default.id else { throw PresetStoreError.cannotDeleteDefaultPreset }
         disablingAutoSave { presets.removeAll { $0.id == id } }
         logger.info("Deleted preset with ID: \"\(id, privacy: .public)\".")
     }
@@ -142,17 +151,6 @@ class PresetStore {
     func movePreset(from source: IndexSet, to destination: Int) {
         presets.move(fromOffsets: source, toOffset: destination)
         logger.info("Moved presets at indexes: \"\(source, privacy: .public)\" to index: \"\(destination, privacy: .public)\".")
-    }
-    
-    /// Disables autosave when the action is taking place, allowing for making two changes and "commit" them once.
-    /// Autosave is re-enabled when the action is completed.
-    func disablingAutoSave(action: () -> Void) {
-        autosaveEnabled = false
-        defer {
-            autosaveEnabled = true
-            autosave() // "Commit" the changes after the actions completed
-        }
-        action()
     }
     
     func exportPreset(_ preset: Preset) -> URL? {
@@ -188,28 +186,38 @@ class PresetStore {
         }
     }
     
+    // MARK: - Applying config
     func applyNewConfig(fromURL url: URL) throws {
-        let configData = try Data(contentsOf: url)
-        guard let config = try? JSONDecoder().decode(Config.self, from: configData) else {
-            logger.error("Failed to decode config file: \(url.path())")
-            throw FGCStoreError.configDecodeError
-        }
+        let config = try ConfigManager.decodeConfig(fromURL: url)
         try applyNewConfig(config)
     }
     
     func applyNewConfig(_ config: Config) throws {
-        let configData = try JSONEncoder().encode(config)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let configData = try encoder.encode(config)
         try configData.write(to: PresetStore.configURL)
         loadConfig()
     }
 }
 
-enum FGCStoreError: LocalizedError {
+enum PresetStoreError: LocalizedError {
     case cannotDeleteDefaultPreset
     case fileImportError(Error)
-    case configDecodeError
+    case missingConfig
+    case configManagerError(ConfigManagerError)
     // Use this very carefully!!!
     case other(Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .cannotDeleteDefaultPreset: return "Cannot delete the default preset."
+        case .fileImportError(let error): return "Error opening file: \(error.localizedDescription)"
+        case .other(let error): return "Other error: \(error.localizedDescription)"
+        case .missingConfig: return "Missing configuration file."
+        case .configManagerError(let error): return "\(error.localizedDescription)"
+        }
+    }
 }
 
 extension Array where Element == Preset.BuiltinColor {
