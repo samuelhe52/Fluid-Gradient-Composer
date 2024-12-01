@@ -21,12 +21,16 @@ struct Config: Codable {
 }
 
 extension Config {
-    struct Version: Codable, Comparable, CustomStringConvertible {
+    struct Version: Codable, Comparable, CustomStringConvertible, Hashable {
         var major: Int
         var minor: Int
         var patch: Int
         
         var description: String { "\(major).\(minor).\(patch)" }
+        
+        var dictRepresentation: [String: Any] {
+            ["major": major, "minor": minor, "patch": patch]
+        }
         
         init?(major: Int, minor: Int, patch: Int) {
             guard major >= 0, minor >= 0, patch >= 0 else {
@@ -38,7 +42,7 @@ extension Config {
             self.patch = patch
         }
         
-        init?(fromString versionString: String) {
+        init?(string versionString: String) {
             let splitted = versionString.split(separator: ".")
             if splitted.count != 3 {
                 return nil

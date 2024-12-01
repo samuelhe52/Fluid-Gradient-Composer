@@ -8,22 +8,60 @@
 import Foundation
 
 class ConfigManager {
-    static let currentVersion: Config.Version = .init(major: 0, minor: 1, patch: 0)!
+    static let currentVersion: Config.Version = .init(string: "0.1.0")!
     
     static func decodeConfig(from data: Data) throws -> Config {
         if let config = try? JSONDecoder().decode(Config.self,
                                                   from: data) {
             return config
         } else {
-//            if let configDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-//                if configDict["version"] == nil {
-//                    configDict["version"] == config
-//                }
-//            } else {
-//                throw ConfigManagerError.configDecodeError
-//            }
-            throw ConfigManagerError.configDecodeError
+            if let configDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                var mutableConfigDict = configDict
+                if mutableConfigDict["version"] == nil ||
+                    Self.dictToVersion(mutableConfigDict["version"] as? [String: Any] ?? [:]) == nil {
+                    logger.warning("No version number found. Trying to enforce current version.")
+                    mutableConfigDict["version"] = Self.currentVersion.dictRepresentation
+                    let configData = try JSONSerialization.data(withJSONObject: mutableConfigDict)
+                    let config = try decodeConfig(from: configData)
+                    return config
+                } else {
+                    logger.warning("Version number found is incompatible. Trying to migrate.")
+                    let config = try migrateConfig(configDict: configDict)
+                    return config
+                }
+            } else {
+                throw ConfigManagerError.cannotDecodeConfig
+            }
         }
+    }
+    
+    private static let compatibleVersions: Set<Config.Version> = []
+    
+    private static func migrateConfig(configDict: [String: Any]) throws -> Config {
+        var mutableConfigDict = configDict
+        if let version = Self.dictToVersion(
+            mutableConfigDict["version"] as? [String: Any] ?? [:]
+        ) {
+            guard version < Self.currentVersion,
+                  compatibleVersions.contains(version) else {
+                throw ConfigManagerError.incompatibleVersion
+            }
+            // TODO: Implementation of version migration functions
+            logger.error("Not implemented.")
+            throw ConfigManagerError.incompatibleVersion
+        } else {
+            throw ConfigManagerError.cannotDecodeConfig
+        }
+    }
+    
+    private static func versionToDict(_ version: Config.Version) -> [String: Any] {
+        ["major": version.major, "minor": version.minor, "patch": version.patch]
+    }
+    private static func dictToVersion(_ dict: [String: Any]) -> Config.Version? {
+        guard let major = dict["major"] as? Int,
+              let minor = dict["minor"] as? Int,
+              let patch = dict["patch"] as? Int else { return nil }
+        return .init(major: major, minor: minor, patch: patch)
     }
     
     static func save(_ config: Config, to url: URL) {
@@ -44,12 +82,13 @@ class ConfigManager {
 }
 
 enum ConfigManagerError: LocalizedError {
-    case configDecodeError
+    case cannotDecodeConfig
+    case incompatibleVersion
     
     var errorDescription: String? {
         switch self {
-        case .configDecodeError:
-            return "Failed to decode config file."
+        case .cannotDecodeConfig: return "Failed to decode config file."
+        case .incompatibleVersion: return "Config file is incompatible with current version."
         }
     }
 }
