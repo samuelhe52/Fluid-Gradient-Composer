@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import os
+
+let logger = Logger(subsystem: "com.samuelhe.fluidgradientcomposer", category: "general")
 
 @main
 struct Fluid_Gradient_ComposerApp: App {

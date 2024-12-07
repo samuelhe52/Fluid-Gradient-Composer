@@ -19,7 +19,7 @@ class FullScreenPreviewCoordinator {
 struct FullScreenPreview: View {
     @Environment(PresetStore.self) var store
     @Bindable var coordinator: FullScreenPreviewCoordinator
-    @State private var showControls: Bool = false
+    @State private var showControls: Bool = true
     @AppStorage("showTimeInFSPreview") private var showTime: Bool = false
     @Environment(\.dismiss) var dismiss
     
@@ -85,6 +85,7 @@ struct FullScreenPreview: View {
                     .pickerStyle(.wheel)
                     Toggle("Time", isOn: $showTime)
                         .toggleStyle(.button)
+                        .background(Color.clear)
                         .scaleEffect(1.2)
                 }
                 .padding()

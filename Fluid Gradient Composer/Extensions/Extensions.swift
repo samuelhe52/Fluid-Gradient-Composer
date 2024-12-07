@@ -1,12 +1,18 @@
 //
-//  HexColor.swift
+//  Extensions.swift
 //  Fluid Gradient Composer
 //
-//  Created by Samuel He on 2024/10/26.
+//  Created by Samuel He on 2024/12/7.
 //
 
+import Foundation
+import UniformTypeIdentifiers
 import SwiftUI
-import UIKit
+
+extension UTType {
+    static let fgcpreset = UTType(exportedAs: "com.samuelhe.fgcpreset")
+    static let fgcconfig = UTType(exportedAs: "com.samuelhe.fgcconfig")
+}
 
 extension Color {
     init?(hex: String) {

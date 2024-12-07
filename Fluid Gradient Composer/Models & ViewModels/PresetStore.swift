@@ -7,15 +7,6 @@
 
 import Foundation
 import SwiftUI
-import os
-import UniformTypeIdentifiers
-
-extension UTType {
-    static let fgcpreset = UTType(exportedAs: "com.samuelhe.fgcpreset")
-    static let fgcconfig = UTType(exportedAs: "com.samuelhe.fgcconfig")
-}
-
-let logger = Logger(subsystem: "com.samuelhe.fluidgradientcomposer", category: "general")
 
 @Observable
 class PresetStore {
