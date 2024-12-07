@@ -34,21 +34,17 @@ class ConfigManager {
             }
         }
     }
-    
-    private static let compatibleVersions: Set<Config.Version> = []
-    
+        
     private static func migrateConfig(configDict: [String: Any]) throws -> Config {
-        var mutableConfigDict = configDict
         if let version = Self.dictToVersion(
-            mutableConfigDict["version"] as? [String: Any] ?? [:]
+            configDict["version"] as? [String: Any] ?? [:]
         ) {
             guard version < Self.currentVersion,
-                  compatibleVersions.contains(version) else {
+                  ConfigMigration.compatibleVersions.contains(version) else {
                 throw ConfigManagerError.incompatibleVersion
             }
-            // TODO: Implementation of version migration functions
-            logger.error("Not implemented.")
-            throw ConfigManagerError.incompatibleVersion
+            let migrated = try ConfigMigration.migrate(configDict: configDict, version: version)
+            return migrated
         } else {
             throw ConfigManagerError.cannotDecodeConfig
         }
