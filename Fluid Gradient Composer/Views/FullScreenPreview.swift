@@ -15,11 +15,11 @@ class FullScreenPreviewCoordinator {
     static var shared = FullScreenPreviewCoordinator()
 }
 
-// MARK: - Allow switching
+// MARK: - Version: allow switching
 struct FullScreenPreview: View {
     @Environment(PresetStore.self) var store
     @Bindable var coordinator: FullScreenPreviewCoordinator
-    @State private var showControls: Bool = true
+    @State private var showControls: Bool = false
     @AppStorage("showTimeInFSPreview") private var showTime: Bool = false
     @Environment(\.dismiss) var dismiss
     
@@ -52,14 +52,25 @@ struct FullScreenPreview: View {
                         toggleControls()
                     }
                 }
-            // MARK: Clock
+                .onTapGesture(count: 2) {
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        dismiss()
+                    } else {
+                        logger.info("Double tap in FullScreenPreview on non-phone device, ignored")
+                    }
+                }
                 .overlay {
-                    ClockView()
-                        .opacity(showTime ? 0.8 : 0)
-                        .animation(.default, value: showTime)
-                        .offset(y: -250)
                     controls(currentPresetName: store.presets[index].name)
                         .opacity(showControls ? 0.8 : 0)
+                }
+            // MARK: Clock
+                .overlay(alignment: .top) {
+                    GeometryReader { geometry in
+                        ClockView()
+                            .opacity(showTime ? 0.8 : 0)
+                            .animation(.default, value: showTime)
+                            .position(x: geometry.size.width / 2, y: geometry.size.height * 0.25)
+                    }
                 }
                 .toolbar(.hidden)
                 .statusBarHidden()
@@ -73,9 +84,6 @@ struct FullScreenPreview: View {
         Color.clear.opacity(0.3)
             .overlay {
                 VStack {
-                    Text(currentPresetName)
-                        .font(.title)
-                        .lineLimit(20)
                     Picker("Switch Preset", selection: $coordinator.presentingPresetId) {
                         ForEach(store.presets) { preset in
                             Text(preset.name)
@@ -101,7 +109,7 @@ struct FullScreenPreview: View {
     }
 }
 
-// MARK: - Dedicated
+// MARK: - Version: dedicated
 struct DedicatedFullScreenPreview: View {
     @Bindable var coordinator: FullScreenPreviewCoordinator
     @State private var showControls: Bool = false
@@ -131,19 +139,26 @@ struct DedicatedFullScreenPreview: View {
                     .offset(y: -30)
                     .opacity(showControls ? 0.8 : 0)
                 }
+                .onTapGesture(count: 2) {
+                    dismiss()
+                }
                 .onTapGesture {
                     if showControls {
                         toggleControls()
                     }
                 }
-            // MARK: Clock
                 .overlay {
-                    ClockView()
-                        .opacity(showTime ? 0.8 : 0)
-                        .animation(.default, value: showTime)
-                        .offset(y: -250)
                     controls(currentPresetName: preset.name)
                         .opacity(showControls ? 0.8 : 0)
+                }
+            // MARK: Clock
+                .overlay(alignment: .top) {
+                    GeometryReader { geometry in
+                        ClockView()
+                            .opacity(showTime ? 0.8 : 0)
+                            .animation(.default, value: showTime)
+                            .position(x: geometry.size.width / 2, y: geometry.size.height * 0.25)
+                    }
                 }
                 .toolbar(.hidden)
                 .statusBarHidden()
@@ -157,11 +172,9 @@ struct DedicatedFullScreenPreview: View {
         Color.clear.opacity(0.3)
             .overlay {
                 VStack {
-                    Text(currentPresetName)
-                        .font(.title)
-                        .lineLimit(20)
                     Toggle("Time", isOn: $showTime)
                         .toggleStyle(.button)
+                        .background(Color.clear)
                         .scaleEffect(1.2)
                 }
                 .padding()

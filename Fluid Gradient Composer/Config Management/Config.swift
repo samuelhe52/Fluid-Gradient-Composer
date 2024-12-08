@@ -18,6 +18,8 @@ struct Config: Codable {
         self.presets = presets
         self.pinnedPresetIds = pinnedPresetIds
     }
+    
+    static let `default`: Config = Config(presets: [.default])
 }
 
 extension Config {

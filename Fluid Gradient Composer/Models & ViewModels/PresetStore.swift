@@ -64,6 +64,7 @@ class PresetStore {
                 FileManager.default.createFile(atPath: url.path(),
                                                contents: nil,
                                                attributes: nil)
+                ConfigManager.save(.default, to: url)
             }
             let config = try ConfigManager.decodeConfig(fromURL: url)
             self.presets = config.presets

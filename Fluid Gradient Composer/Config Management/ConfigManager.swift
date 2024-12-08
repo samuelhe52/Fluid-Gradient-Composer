@@ -72,7 +72,12 @@ class ConfigManager {
     }
     
     static func decodeConfig(fromURL url: URL) throws -> Config {
-        let data = try Data(contentsOf: url)
+        var data = try Data(contentsOf: url)
+        if data.isEmpty {
+            ConfigManager.save(.default, to: url)
+            logger.warning("Config file is empty. Using default config.")
+            data = try Data(contentsOf: url)
+        }
         return try decodeConfig(from: data)
     }
 }

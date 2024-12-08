@@ -22,6 +22,7 @@ struct PresetManager: View {
                         buildPresetList(store.pinnedPresets)
                     }
                 }
+                Divider()
                 if !store.unpinnedPresets.isEmpty {
                     Section {
                         buildPresetList(store.unpinnedPresets)
