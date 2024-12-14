@@ -22,7 +22,7 @@ struct ColorSchemeSwitcher: View {
             ForEach(ColorSchemeMode.allCases, id: \.self) { mode in
                 Button {
                     colorSchemeMode = mode
-                    applyColorScheme()
+                    Self.applyColorScheme(mode)
                 } label: {
                     if mode == colorSchemeMode {
                         Label(mode.rawValue, systemImage: "checkmark")
@@ -34,14 +34,9 @@ struct ColorSchemeSwitcher: View {
         } label: {
             Text("Appearance")
         }
-        .onChange(of: systemColorScheme) {
-            if colorSchemeMode == .system {
-                applyColorScheme()
-            }
-        } // Update the view when system preferred scheme changes
     }
     
-    private func applyColorScheme() {
+    static func applyColorScheme(_ colorSchemeMode: ColorSchemeMode) {
         #if os(iOS)
         UIApplication.shared.connectedScenes.forEach { scene in
             if let windowScene = scene as? UIWindowScene,

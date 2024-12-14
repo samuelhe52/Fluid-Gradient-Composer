@@ -21,26 +21,16 @@ struct Fluid_Gradient_ComposerApp: App {
     var body: some Scene {
         WindowGroup {
             PresetManager(store: presetStore)
-                .preferredColorScheme(getColorScheme())
                 .navigationTitle("Preset Manager")
+                .onAppear {
+                    ColorSchemeSwitcher.applyColorScheme(colorSchemeMode)
+                }
         }
         
         WindowGroup("FullScreenPreview", for: Preset.ID.self) { $presetId in
             FullScreenPreview(coordinator: coordinator)
                 .onAppear { coordinator.presentingPresetId = presetId }
-                .preferredColorScheme(getColorScheme())
                 .environment(presetStore)
-        }
-    }
-    
-    private func getColorScheme() -> ColorScheme {
-        switch colorSchemeMode {
-        case .light:
-            return .light
-        case .dark:
-            return .dark
-        case .system:
-            return systemColorScheme
         }
     }
 }
