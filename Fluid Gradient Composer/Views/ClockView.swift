@@ -8,12 +8,6 @@
 import SwiftUI
 
 struct ClockView: View {
-    @State private var currentTime = Date()
-    
-    let timer = Timer
-        .publish(every: 1, on: .main, in: .common)
-        .autoconnect()
-    
     private let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
@@ -27,21 +21,20 @@ struct ClockView: View {
     }()
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Time
-            Text(timeFormatter.string(from: currentTime))
-                .font(.system(size: 96,
-                              weight: .semibold,
-                              design: .monospaced))
-                .padding(.bottom, 4)
-            
-            // Date
-            Text(dateFormatter.string(from: currentTime))
-                .font(.system(size: 24, weight: .regular))
-                .foregroundColor(.secondary)
-        }
-        .onReceive(timer) { input in
-            currentTime = input
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            VStack(spacing: 0) {
+                // Time
+                Text(timeFormatter.string(from: context.date))
+                    .font(.system(size: 96,
+                                  weight: .semibold,
+                                  design: .monospaced))
+                    .padding(.bottom, 4)
+                
+                // Date
+                Text(dateFormatter.string(from: context.date))
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }
