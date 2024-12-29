@@ -89,7 +89,7 @@ struct ColorChooser: View {
     @Binding var color: Preset.BuiltinColor
     
     @State var usingCustomColor: Bool = false
-    @State var customColor: Color = .clear
+    @State var customColor: Color = .white
     
     var body: some View {
         ScrollViewReader { proxy in
