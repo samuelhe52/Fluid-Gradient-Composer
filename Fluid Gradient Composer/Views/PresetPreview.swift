@@ -72,6 +72,7 @@ struct PresetPreview: View {
                     preset.randomizeColors()
                 }
                 Spacer()
+                RenderButton(preset: preset)
                 Button("Lock", systemImage: "lock") {
                     withAnimation {
                         preset.lock()
