@@ -16,7 +16,7 @@ struct RenderButton: View {
     
     var body: some View {
         Button {
-            Task { await renderImage(preset: preset) }
+            Task { renderImage(preset: preset) }
         } label: {
             switch renderState {
             case .blank:
@@ -26,6 +26,8 @@ struct RenderButton: View {
                 ProgressView()
             case .rendered:
                 Label("Success", systemImage: "checkmark.circle")
+            case .failed:
+                Label("Failed", systemImage: "xmark.circle")
             }
         }
         .disabled(renderState == .rendering)
@@ -46,20 +48,23 @@ struct RenderButton: View {
         }
     }
     
-    nonisolated
-    private func renderImage(preset: Preset) async {
-        await MainActor.run { renderState = .rendering }
-        let filter: BlurFilter = .gaussianBlur
-        let blurRadius: CGFloat = 150
-        
-        if let image = await renderGradient(preset: preset,
-                                            size: .init(width: 1200, height: 2000),
-                                            blurFilter: filter,
-                                            blurRadius: blurRadius) {
-            await MainActor.run {
-                let uiImage = UIImage(cgImage: image)
-                renderState = .rendered(uiImage)
-                showingImage = true
+    private func renderImage(preset: Preset,
+                             size: CGSize = .init(width: 1200, height: 2000),
+                             blur: CGFloat = 0.75) {
+        let blurValue = min(size.width, size.height)
+        renderState = .rendering
+        if let cgImage = renderGradient(preset: preset,
+                                      size: .init(width: 1200, height: 2000)) {
+            let image = Image(uiImage: UIImage(cgImage: cgImage))
+                .blur(radius: pow(blurValue, blur))
+            let renderer = ImageRenderer(content: image)
+            let uiImage = renderer.uiImage!
+            renderState = .rendered(uiImage)
+            showingImage = true
+        } else {
+            renderState = .failed
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                renderState = .blank
             }
         }
     }
@@ -68,6 +73,7 @@ struct RenderButton: View {
         case blank
         case rendering
         case rendered(UIImage)
+        case failed
         
         var rendering: Bool {
             switch self {
@@ -78,10 +84,11 @@ struct RenderButton: View {
     }
 }
 
-func renderGradient(preset: Preset, size: CGSize, blurFilter: BlurFilter, blurRadius: CGFloat) async -> CGImage? {
-    let gradientView = await FluidGradientView(
+@MainActor
+func renderGradient(preset: Preset, size: CGSize) -> CGImage? {
+    let gradientView = FluidGradientView(
         blobs: preset.colors.displayColors,
         highlights: preset.highlights.displayColors,
         speed: preset.speed)
-    return await gradientView.renderToImage(size: size, blurFilter: blurFilter, blurRadius: blurRadius)
+    return gradientView.renderToImage(size: size)
 }
