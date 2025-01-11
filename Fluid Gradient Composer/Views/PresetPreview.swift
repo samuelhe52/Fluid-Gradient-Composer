@@ -13,7 +13,13 @@ struct PresetPreview: View {
     @State private var isEditing: Bool = false
     @State private var showFullScreenPreview = false
     @State private var showControl: Bool = false
+    private var renderer: GradientRenderer
     @Environment(\.openWindow) private var openWindow
+    
+    init(preset: Binding<Preset>) {
+        self._preset = preset
+        self.renderer = .init(preset: preset.wrappedValue)
+    }
         
     var body: some View {
         VStack {
@@ -72,7 +78,8 @@ struct PresetPreview: View {
                     preset.randomizeColors()
                 }
                 Spacer()
-                RenderButton(preset: preset)
+                RenderButton()
+                    .environment(renderer)
                 Button("Lock", systemImage: "lock") {
                     withAnimation {
                         preset.lock()
