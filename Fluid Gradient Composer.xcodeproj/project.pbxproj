@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9F5E66142D21087B009A6B72 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 9F5E66132D21087B009A6B72 /* FluidGradient */; };
+		9F71C66C2D338A6F0027C416 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 9F71C66B2D338A6F0027C416 /* FluidGradient */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9F5E66142D21087B009A6B72 /* FluidGradient in Frameworks */,
+				9F71C66C2D338A6F0027C416 /* FluidGradient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,7 +125,7 @@
 			);
 			name = "Fluid Gradient Composer";
 			packageProductDependencies = (
-				9F5E66132D21087B009A6B72 /* FluidGradient */,
+				9F71C66B2D338A6F0027C416 /* FluidGradient */,
 			);
 			productName = "Fluid Gradient Composer";
 			productReference = 9FE710C02C8D50F900D2B63B /* Fluid Gradient Composer.app */;
@@ -210,7 +210,7 @@
 			mainGroup = 9FE710B72C8D50F900D2B63B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9F5E66122D21087B009A6B72 /* XCLocalSwiftPackageReference "../../SwiftProjects/FluidGradient" */,
+				9F71C66A2D338A6F0027C416 /* XCLocalSwiftPackageReference "Modules/FluidGradient" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9FE710C12C8D50F900D2B63B /* Products */;
@@ -630,14 +630,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		9F5E66122D21087B009A6B72 /* XCLocalSwiftPackageReference "../../SwiftProjects/FluidGradient" */ = {
+		9F71C66A2D338A6F0027C416 /* XCLocalSwiftPackageReference "Modules/FluidGradient" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../SwiftProjects/FluidGradient;
+			relativePath = Modules/FluidGradient;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9F5E66132D21087B009A6B72 /* FluidGradient */ = {
+		9F71C66B2D338A6F0027C416 /* FluidGradient */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FluidGradient;
 		};

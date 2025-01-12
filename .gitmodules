@@ -1,0 +1,3 @@
+[submodule "Modules/FluidGradient"]
+	path = Modules/FluidGradient
+	url = git@github.com:samuelhe52/FluidGradient.git
