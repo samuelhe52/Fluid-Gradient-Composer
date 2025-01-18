@@ -34,7 +34,7 @@ class GradientRenderer {
     }
     
     @MainActor
-    func renderGradient(size: CGSize) -> CGImage? {
+    func renderGradient(size: CGSize) -> UIImage? {
         let gradientView = FluidGradientView(
             blobs: preset.colors.displayColors,
             highlights: preset.highlights.displayColors,
@@ -47,15 +47,16 @@ class GradientRenderer {
                      blur: CGFloat = 0.75) {
         let blurValue = min(size.width, size.height)
         renderState = .rendering
-        if let cgImage = renderGradient(size: .init(width: 1200, height: 2000)) {
-            let image = Image(uiImage: UIImage(cgImage: cgImage))
+        if let uiImage = renderGradient(size: .init(width: 1200, height: 2000)) {
+            let image = Image(uiImage: uiImage)
                 .blur(radius: pow(blurValue, blur))
             let imageRenderer = ImageRenderer(content: image)
-            let uiImage = imageRenderer.uiImage!
-            renderState = .rendered(uiImage)
+            let renderedImage = imageRenderer.uiImage!
+            renderState = .rendered(renderedImage)
         } else {
             renderState = .failed
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            DispatchQueue.main
+                .asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 self?.renderState = .blank
             }
         }
