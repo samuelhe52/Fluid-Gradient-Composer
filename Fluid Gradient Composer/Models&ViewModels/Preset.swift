@@ -40,7 +40,7 @@ struct Preset: Codable, Identifiable, Hashable {
                                        colors: defaultColors,
                                        speed: 1,
                                        highlights: defaultColors,
-                                       id: .init(uuidString: "9A2F1A9E-4579-4B79-A99E-6477FF635A09") ?? .init())
+                                       id: .init())
     
     static var blank: Self {
         .init(name: "",

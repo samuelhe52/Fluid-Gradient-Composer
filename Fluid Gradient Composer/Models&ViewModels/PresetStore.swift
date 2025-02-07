@@ -125,17 +125,11 @@ class PresetStore {
     }
     
     func deletePreset(at indexSet: IndexSet) throws {
-        for index in indexSet {
-            guard presets[index].id != Preset.default.id else {
-                throw PresetStoreError.cannotDeleteDefaultPreset
-            }
-        }
         presets.remove(atOffsets: indexSet)
         logger.info("Deleted \(indexSet.count) preset(s).")
     }
     
     func deletePreset(withId id: Preset.ID) throws {
-        guard id != Preset.default.id else { throw PresetStoreError.cannotDeleteDefaultPreset }
         disablingAutoSave { presets.removeAll { $0.id == id } }
         logger.info("Deleted preset with ID: \"\(id, privacy: .public)\".")
     }
@@ -162,7 +156,9 @@ class PresetStore {
     
     func pin(withPresetId: Preset.ID) {
         if presetIds.contains(withPresetId) {
-            pinnedPresetIds.insert(withPresetId)
+            let _ = withAnimation {
+                pinnedPresetIds.insert(withPresetId)
+            }
         } else {
             logger.fault("Preset not found: \(withPresetId)")
         }
@@ -171,7 +167,9 @@ class PresetStore {
     
     func unpin(withPresetId id: Preset.ID) {
         if isPinned(presetId: id) {
-            pinnedPresetIds.remove(id)
+            let _ = withAnimation {
+                pinnedPresetIds.remove(id)
+            }
             logger.info("Unpinned Preset: \(id)")
         } else {
             logger.fault("Preset not found: \(id)")
@@ -194,7 +192,6 @@ class PresetStore {
 }
 
 enum PresetStoreError: LocalizedError {
-    case cannotDeleteDefaultPreset
     case fileImportError(Error)
     case missingConfig
     case configManagerError(ConfigManagerError)
@@ -203,7 +200,6 @@ enum PresetStoreError: LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .cannotDeleteDefaultPreset: return "Cannot delete the default preset."
         case .fileImportError(let error): return "Error opening file: \(error.localizedDescription)"
         case .other(let error): return "Other error: \(error.localizedDescription)"
         case .missingConfig: return "Missing configuration file."
