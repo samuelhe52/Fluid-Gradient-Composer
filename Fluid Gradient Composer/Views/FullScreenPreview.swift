@@ -55,8 +55,6 @@ struct FullScreenPreview: View {
                 .onTapGesture(count: 2) {
                     if UIDevice.current.userInterfaceIdiom == .phone {
                         dismiss()
-                    } else {
-                        logger.info("Double tap in FullScreenPreview on non-phone device, ignored")
                     }
                 }
                 .overlay {

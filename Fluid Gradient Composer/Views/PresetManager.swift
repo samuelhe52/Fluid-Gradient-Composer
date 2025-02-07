@@ -259,7 +259,6 @@ struct PresetManager: View {
         .confirmationDialog("Apply Custom Config",
                             isPresented: $applyingCustomConfig) {
             Button("Choose Custom Config") {
-                logger.info("Applying custom config...")
                 showFileImporter = true
             }
         } message: {
@@ -280,9 +279,9 @@ struct PresetManager: View {
                         if configURL.startAccessingSecurityScopedResource() {
                             defer { configURL.stopAccessingSecurityScopedResource() }
                             try store.applyNewConfig(fromURL: configURL)
-                            logger.info("Applied custom config.")
+                            logger.info("Applied custom config: \(configURL)")
                         } else {
-                            logger.error("Failed to access config file.")
+                            logger.error("Failed to access config file: \(configURL)")
                         }
                     } catch let error as PresetStoreError {
                         applyFailed = true

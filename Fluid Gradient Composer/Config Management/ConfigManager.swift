@@ -19,13 +19,13 @@ class ConfigManager {
                 var mutableConfigDict = configDict
                 if mutableConfigDict["version"] == nil ||
                     Self.dictToVersion(mutableConfigDict["version"] as? [String: Any] ?? [:]) == nil {
-                    logger.warning("No version number found. Trying to enforce current version.")
+                    logger.warning("No version number found. Trying to enforce current version. \(mutableConfigDict)")
                     mutableConfigDict["version"] = Self.currentVersion.dictRepresentation
                     let configData = try JSONSerialization.data(withJSONObject: mutableConfigDict)
                     let config = try decodeConfig(from: configData)
                     return config
                 } else {
-                    logger.warning("Version number found is incompatible. Trying to migrate.")
+                    logger.warning("Version number found is incompatible. Trying to migrate. \(mutableConfigDict)")
                     let config = try migrateConfig(configDict: configDict)
                     return config
                 }
@@ -75,7 +75,7 @@ class ConfigManager {
         var data = try Data(contentsOf: url)
         if data.isEmpty {
             ConfigManager.save(.default, to: url)
-            logger.warning("Config file is empty. Using default config.")
+            logger.warning("Config file is empty: \(url). Using default config.")
             data = try Data(contentsOf: url)
         }
         return try decodeConfig(from: data)
@@ -93,4 +93,3 @@ enum ConfigManagerError: LocalizedError {
         }
     }
 }
-
