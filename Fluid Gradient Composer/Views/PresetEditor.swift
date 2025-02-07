@@ -14,7 +14,6 @@ struct PresetEditor: View {
     @State private var showDiscardChangesAlert: Bool = false
     
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var focused: Bool
     
     init(preset: Binding<Preset>) {
         self._preset = preset
@@ -26,9 +25,6 @@ struct PresetEditor: View {
             Form {
                 Section("name") {
                     TextField("Enter a name", text: $preset.name)
-                        .disabled(isDefaultPreset)
-                        .foregroundStyle(isDefaultPreset ? Color(uiColor: .systemGray) : .primary)
-                        .focused($focused)
                 }
                 Section("colors") {
                     ColorPalette(colors: $preset.colors) { randomizeColors() }
@@ -64,7 +60,6 @@ struct PresetEditor: View {
                     }
                 }
             }
-            .onAppear { focused = true }
             .navigationTitle("Preset Editor")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -93,9 +88,7 @@ struct PresetEditor: View {
             }
         }
     }
-    
-    private var isDefaultPreset: Bool { preset.id == Preset.default.id }
-    
+        
     private func randomizeColors() {
         preset.colors = Preset.generateRandomColors().colors
     }
