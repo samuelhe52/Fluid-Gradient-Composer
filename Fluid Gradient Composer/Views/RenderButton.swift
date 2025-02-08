@@ -45,11 +45,29 @@ struct RenderButton: View {
     private var popoverContent: some View {
         switch renderer.renderState {
         case .rendered(let uiImage):
-            Image(uiImage: uiImage)
-                .resizable()
-                .clipShape(ProportionalRoundedRectangle(cornerFraction: 0.03))
-                .scaledToFit()
-                .padding()
+            VStack {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .clipShape(ProportionalRoundedRectangle(cornerFraction: 0.03))
+                    .scaledToFit()
+                    .padding()
+                LazyShareLink {
+                    guard let data = uiImage.jpegData(compressionQuality: 1)
+                    else { return nil }
+                    do {
+                        let url = URL
+                            .temporaryDirectory
+                            .appendingPathComponent(renderer.preset.name,
+                                                    conformingTo: .jpeg)
+                        try data.write(to: url)
+                        return [url]
+                    } catch {
+                        return nil
+                    }
+                } label: {
+                    Label("Save...", systemImage: "square.and.arrow.down")
+                }
+            }
         default:
             Text("Image missing. This should never happen.")
         }

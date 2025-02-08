@@ -34,6 +34,7 @@ struct FullScreenPreview: View {
                         .opacity(showControls ? 0.5 : 0)
                         .ignoresSafeArea()
                 }
+                .overlay { DismissNotice() }
             // MARK: - Controls
                 .overlay(alignment: .bottom) {
                     let isDeviceIPhone = UIDevice.current.userInterfaceIdiom == .phone
@@ -125,6 +126,7 @@ struct DedicatedFullScreenPreview: View {
                         .opacity(showControls ? 0.5 : 0)
                         .ignoresSafeArea()
                 }
+                .overlay { DismissNotice() }
             // MARK: - Controls
                 .overlay(alignment: .bottom) {
                     Button { dismiss() } label: {
@@ -185,6 +187,23 @@ struct DedicatedFullScreenPreview: View {
         withAnimation {
             showControls.toggle()
         }
+    }
+}
+
+struct DismissNotice: View {
+    @State private var showDismissNotice: Bool = true
+    
+    var body: some View {
+        Text("Double tap to dismiss!")
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation {
+                        showDismissNotice = false
+                    }
+                }
+            }
+            .font(.title2)
+            .opacity(showDismissNotice ? 0.8 : 0)
     }
 }
 
