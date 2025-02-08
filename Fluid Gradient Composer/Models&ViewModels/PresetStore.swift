@@ -150,8 +150,8 @@ class PresetStore {
             return url
         } catch {
             logger.error("Failed to export preset: \(error)")
+            return nil
         }
-        return nil
     }
     
     func pin(withPresetId: Preset.ID) {

@@ -18,7 +18,7 @@
 			<key>NSDocumentClass</key>
 			<string></string>
 			<key>NSUbiquitousDocumentUserActivityType</key>
-            <string>com.samuelhe.fgcpreset</string>
+			<string>com.samuelhe.fgcpreset</string>
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>

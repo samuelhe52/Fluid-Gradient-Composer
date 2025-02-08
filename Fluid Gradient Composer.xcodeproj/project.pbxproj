@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9FB0483F2C8D545C00F9BD73 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB0483E2C8D545C00F9BD73 /* FluidGradient */; };
+		9F71C66C2D338A6F0027C416 /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = 9F71C66B2D338A6F0027C416 /* FluidGradient */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9FB0483F2C8D545C00F9BD73 /* FluidGradient in Frameworks */,
+				9F71C66C2D338A6F0027C416 /* FluidGradient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,7 +125,7 @@
 			);
 			name = "Fluid Gradient Composer";
 			packageProductDependencies = (
-				9FB0483E2C8D545C00F9BD73 /* FluidGradient */,
+				9F71C66B2D338A6F0027C416 /* FluidGradient */,
 			);
 			productName = "Fluid Gradient Composer";
 			productReference = 9FE710C02C8D50F900D2B63B /* Fluid Gradient Composer.app */;
@@ -210,7 +210,7 @@
 			mainGroup = 9FE710B72C8D50F900D2B63B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9FB0483C2C8D53D500F9BD73 /* XCRemoteSwiftPackageReference "FluidGradient" */,
+				9F71C66A2D338A6F0027C416 /* XCLocalSwiftPackageReference "Modules/FluidGradient" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9FE710C12C8D50F900D2B63B /* Products */;
@@ -419,6 +419,7 @@
 				INFOPLIST_FILE = "Fluid-Gradient-Composer-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = ToneFlow;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save exported images to your photo library.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -465,6 +466,7 @@
 				INFOPLIST_FILE = "Fluid-Gradient-Composer-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = ToneFlow;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save exported images to your photo library.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -629,21 +631,16 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		9FB0483C2C8D53D500F9BD73 /* XCRemoteSwiftPackageReference "FluidGradient" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Cindori/FluidGradient.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		9F71C66A2D338A6F0027C416 /* XCLocalSwiftPackageReference "Modules/FluidGradient" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/FluidGradient;
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9FB0483E2C8D545C00F9BD73 /* FluidGradient */ = {
+		9F71C66B2D338A6F0027C416 /* FluidGradient */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9FB0483C2C8D53D500F9BD73 /* XCRemoteSwiftPackageReference "FluidGradient" */;
 			productName = FluidGradient;
 		};
 /* End XCSwiftPackageProductDependency section */
