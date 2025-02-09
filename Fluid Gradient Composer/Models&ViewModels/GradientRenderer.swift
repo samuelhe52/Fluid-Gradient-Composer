@@ -25,11 +25,10 @@ class GradientRenderer {
         case rendered(UIImage)
         case failed
         
-        var rendering: Bool {
-            switch self {
-            case .rendering: return true
-            default: return false
-            }
+        var rendered: Bool {
+            if case .rendered(_) = self {
+                return true
+            } else { return false }
         }
     }
     
@@ -47,7 +46,7 @@ class GradientRenderer {
                      blur: CGFloat = 0.75) {
         let blurValue = min(size.width, size.height)
         renderState = .rendering
-        if let uiImage = renderGradient(size: .init(width: 1200, height: 2000)) {
+        if let uiImage = renderGradient(size: size) {
             let image = Image(uiImage: uiImage)
                 .blur(radius: pow(blurValue, blur))
             let imageRenderer = ImageRenderer(content: image)
