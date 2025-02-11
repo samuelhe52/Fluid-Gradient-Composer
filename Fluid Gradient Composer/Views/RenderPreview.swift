@@ -10,6 +10,7 @@ import SwiftUI
 struct RenderPreview: View {
     @Environment(GradientRenderer.self) var renderer
     @State var showConfiguration: Bool = false
+    @State var showImage: Bool = true
     @State var size: CGSize = .init(width: Constants.defaultWidth,
                                     height: Constants.defaultHeight)
     let blur: CGFloat = Constants.defaultBlur
@@ -17,7 +18,7 @@ struct RenderPreview: View {
     // MARK: - Body
     var body: some View {
         VStack {
-            renderedImage
+            imageArea
             HStack(spacing: 15) {
                 shareButton
                 Button {
@@ -27,16 +28,21 @@ struct RenderPreview: View {
                 } label: {
                     Label("Params...", systemImage: "pencil")
                 }
-                Button("Try again") {
+                Button("Render") {
                     withAnimation {
                         renderer.renderImage(size: size, blur: blur)
+                        showImage = true
                     }
                 }
             }
             .buttonStyle(.bordered)
-            VStack {
-                configuration
-                    .padding()
+            configuration
+        }
+        .padding()
+        .animation(.bouncy, value: size)
+        .onChange(of: size) {
+            withAnimation {
+                showImage = false
             }
         }
     }
@@ -46,6 +52,7 @@ struct RenderPreview: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.allowsFloats = false
+        formatter.usesGroupingSeparator = false
         return formatter
     }()
     
@@ -98,7 +105,28 @@ struct RenderPreview: View {
         }.disabled(!renderer.renderState.rendered)
     }
     
-    // MARK: - Image
+    // MARK: - Image Area
+    @ViewBuilder
+    private var imageArea: some View {
+        if !showImage {
+            ProportionalRoundedRectangle(cornerFraction: 0.03)
+                .stroke(.blue, lineWidth: 5)
+                .fill(.blue.opacity(0.1))
+                .aspectRatio(size.width / size.height,
+                             contentMode: .fit)
+                .transition(
+                    .move(edge: .top)
+                    .combined(with: .opacity)
+                )
+        } else {
+            renderedImage
+                .transition(
+                    .move(edge: .top)
+                    .combined(with: .opacity)
+                )
+        }
+    }
+    
     @ViewBuilder
     private var renderedImage: some View {
         switch renderer.renderState {
@@ -107,7 +135,6 @@ struct RenderPreview: View {
                 .resizable()
                 .clipShape(ProportionalRoundedRectangle(cornerFraction: 0.03))
                 .scaledToFit()
-                .padding()
         case .rendering:
             ProgressView()
         case .failed:
