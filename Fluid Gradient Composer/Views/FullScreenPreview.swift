@@ -97,7 +97,7 @@ struct FullScreenPreview: View {
                 }
                 .padding()
             }
-            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .clipShape(.rect(cornerRadius: 20))
             .frame(width: 250, height: 250)
     }
     
@@ -179,7 +179,7 @@ struct DedicatedFullScreenPreview: View {
                 }
                 .padding()
             }
-            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .clipShape(.rect(cornerRadius: 20))
             .frame(width: 250, height: 150)
     }
     

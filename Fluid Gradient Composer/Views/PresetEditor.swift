@@ -42,7 +42,7 @@ struct PresetEditor: View {
                     FluidGradient(blobs: preset.colors.displayColors,
                                   highlights: preset.highlights.displayColors,
                                   speed: preset.speed)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(.rect(cornerRadius: 10))
                     .aspectRatio(2/1, contentMode: .fit)
                 }
                 Section("Options") {

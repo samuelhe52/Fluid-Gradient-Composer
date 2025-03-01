@@ -13,12 +13,14 @@ struct RenderPreview: View {
     @State var showImage: Bool = true
     @State var size: CGSize = .init(width: Constants.defaultWidth,
                                     height: Constants.defaultHeight)
+    @FocusState var focusedField: InputField?
     let blur: CGFloat = Constants.defaultBlur
     
     // MARK: - Body
     var body: some View {
         VStack {
             imageArea
+                .onTapGesture { focusedField = nil }
             HStack(spacing: 15) {
                 shareButton
                 Button {
@@ -64,15 +66,21 @@ struct RenderPreview: View {
                 HStack {
                     TextField("Width", value: $size.width, formatter: formatter)
                         .keyboardType(.numberPad)
+                        .focused($focusedField, equals: .width)
                     Text("x")
                     TextField("Height", value: $size.height, formatter: formatter)
                         .keyboardType(.numberPad)
+                        .focused($focusedField, equals: .height)
                 }.textFieldStyle(.roundedBorder)
             }
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
     
+    enum InputField: Hashable {
+        case width
+        case height
+    }
     // MARK: - Share Button
     private var shareButton: some View {
         LazyShareLink {
@@ -154,6 +162,10 @@ struct RenderPreview: View {
 }
 
 #Preview {
+    var renderer = GradientRenderer(preset: .default)
     RenderPreview()
-        .environment(GradientRenderer(preset: .default))
+        .environment(renderer)
+        .onAppear {
+            renderer.renderImage()
+        }
 }

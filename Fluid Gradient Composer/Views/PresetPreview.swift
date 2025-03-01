@@ -50,7 +50,7 @@ struct PresetPreview: View {
     @ViewBuilder
     var gradientWindow: some View {
         GradientWindow(withPreset: preset)
-            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .clipShape(.rect(cornerRadius: 25))
             .onLongPressGesture { showControl = true }
             .onTapGesture {
                 if showControl {
