@@ -15,7 +15,7 @@ enum ColorSchemeMode: String, CaseIterable {
 
 struct ColorSchemeSwitcher: View {
     @AppStorage("ColorSchemeMode") private var colorSchemeMode: ColorSchemeMode = .system
-    @Environment(\.colorScheme) private var systemColorScheme
+    var title: String?
     
     var body: some View {
         Menu {
@@ -32,7 +32,7 @@ struct ColorSchemeSwitcher: View {
                 }
             }
         } label: {
-            Text("Appearance")
+            Text(title ?? "Appearance")
         }
     }
     
@@ -70,5 +70,35 @@ struct ColorSchemeSwitcher: View {
         
         NSApp.appearance = newAppearance
         #endif
+    }
+}
+
+struct ColorSchemeSwitchButton: View {
+    @AppStorage("ColorSchemeMode") private var colorSchemeMode: ColorSchemeMode = .system
+    @Environment(\.colorScheme) private var systemColorScheme
+    
+    var body: some View {
+        Button {
+            withAnimation {
+                switch colorSchemeMode {
+                    case .light:
+                    colorSchemeMode = .dark
+                case .dark:
+                    colorSchemeMode = .system
+                case .system:
+                    colorSchemeMode = .light
+                }
+            }
+            ColorSchemeSwitcher.applyColorScheme(colorSchemeMode)
+        } label: {
+            switch colorSchemeMode {
+            case .light:
+                Image(systemName: "sun.max")
+            case .dark:
+                Image(systemName: "moon")
+            case .system:
+                Image(systemName: "circle.lefthalf.filled")
+            }
+        }
     }
 }

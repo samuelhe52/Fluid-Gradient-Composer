@@ -8,6 +8,7 @@
 import Foundation
 import UniformTypeIdentifiers
 import SwiftUI
+import UIKit
 
 extension UTType {
     static let fgcpreset = UTType(exportedAs: "com.samuelhe.fgcpreset")
@@ -68,5 +69,25 @@ extension Color {
                 return String(format: "%02lX%02lX%02lX", lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
             }
         }
+}
+
+extension UIImage {
+    func jpegData(backgroundColor: UIColor, compressionQuality: CGFloat) -> Data? {
+        // Create a context that composites the image over the given background
+        UIGraphicsBeginImageContextWithOptions(size, false, scale) // `false` preserves transparency blending
+        defer { UIGraphicsEndImageContext() }
+        
+        let rect = CGRect(origin: .zero, size: size)
+        backgroundColor.setFill()
+        UIRectFill(rect) // Fill background
+        
+        draw(in: rect) // Overlay original image
+        
+        guard let filledImage = UIGraphicsGetImageFromCurrentImageContext() else {
+            return nil
+        }
+        
+        return filledImage.jpegData(compressionQuality: compressionQuality)
+    }
 }
 

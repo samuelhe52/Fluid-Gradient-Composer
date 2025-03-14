@@ -9,17 +9,21 @@ import SwiftUI
 
 struct RenderPreview: View {
     @Environment(GradientRenderer.self) var renderer
-    @State var showConfiguration: Bool = false
+    @Environment(\.colorScheme) var colorScheme
+    @State var showConfiguration: Bool = true
     @State var showImage: Bool = true
     @State var size: CGSize = .init(width: Constants.defaultWidth,
                                     height: Constants.defaultHeight)
-    @FocusState var focusedField: InputField?
+    @State var lockedAspectRatio: CGFloat?
+    @FocusState private var focusedField: InputField?
     let blur: CGFloat = Constants.defaultBlur
     
     // MARK: - Body
     var body: some View {
         VStack {
             imageArea
+                .padding(.bottom, 5)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onTapGesture { focusedField = nil }
             HStack(spacing: 15) {
                 shareButton
@@ -30,13 +34,9 @@ struct RenderPreview: View {
                 } label: {
                     Label("Params...", systemImage: "pencil")
                 }
-                Button("Render") {
-                    withAnimation {
-                        renderer.renderImage(size: size, blur: blur)
-                        showImage = true
-                    }
-                }
+                Button("Render") { refreshImage() }
             }
+            .padding(.bottom, showConfiguration ? 0 : 10)
             .buttonStyle(.bordered)
             configuration
         }
@@ -49,35 +49,78 @@ struct RenderPreview: View {
         }
     }
     
+    private func refreshImage() {
+        withAnimation {
+            renderer.renderImage(size: size, blur: blur)
+            showImage = true
+        }
+    }
+    
     // MARK: - Configuration
     let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.allowsFloats = false
         formatter.usesGroupingSeparator = false
+        formatter.maximumFractionDigits = 2
         return formatter
     }()
     
     @ViewBuilder
     private var configuration: some View {
         if showConfiguration {
-            VStack(alignment: .center) {
-                Divider()
+            VStack(alignment: .center, spacing: 0) {
                 HStack {
                     TextField("Width", value: $size.width, formatter: formatter)
                         .keyboardType(.numberPad)
                         .focused($focusedField, equals: .width)
-                    Text("x")
+                    aspectRatioLock
                     TextField("Height", value: $size.height, formatter: formatter)
                         .keyboardType(.numberPad)
                         .focused($focusedField, equals: .height)
-                }.textFieldStyle(.roundedBorder)
+                }
+                .textFieldStyle(.roundedBorder)
+                .padding(.top, 5)
+                HStack {
+                    Slider(value: $size.width, in: 500...8000, step: 50)
+                    ColorSchemeSwitchButton()
+                    Slider(value: $size.height, in: 500...8000, step: 50)
+                }
+                .onAppear {
+                    let config = UIImage.SymbolConfiguration(scale: .small)
+                    let thumbImage = UIImage(systemName: "circle.fill",
+                                             withConfiguration: config)
+                    UISlider.appearance().setThumbImage(thumbImage, for: .normal)
+                }
             }
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
     
-    enum InputField: Hashable {
+    private var aspectRatioLock: some View {
+        Button {
+            if lockedAspectRatio != nil {
+                lockedAspectRatio = nil
+            } else {
+                lockedAspectRatio = size.width / size.height
+            }
+        } label: {
+            Image(systemName: "link")
+                .tint((lockedAspectRatio != nil) ? .blue : .gray)
+        }
+        .onChange(of: size.width) {
+            if let lockedAspectRatio {
+                size.height = size.width / lockedAspectRatio
+            }
+        }
+        .onChange(of: size.height) {
+            if let lockedAspectRatio {
+                size.width = size.height * lockedAspectRatio
+            }
+        }
+    }
+    
+    private enum InputField: Hashable {
         case width
         case height
     }
@@ -92,8 +135,9 @@ struct RenderPreview: View {
                 break
             }
             
+            let bgColor: UIColor = colorScheme == .dark ? .black : .white
             guard let uiImage else { return nil }
-            guard let data = uiImage.jpegData(compressionQuality: Constants.jpegQuality) else {
+            guard let data = uiImage.jpegData(backgroundColor: bgColor, compressionQuality: Constants.jpegQuality) else {
                 return nil
             }
             
@@ -162,7 +206,7 @@ struct RenderPreview: View {
 }
 
 #Preview {
-    var renderer = GradientRenderer(preset: .default)
+    let renderer = GradientRenderer(preset: .default)
     RenderPreview()
         .environment(renderer)
         .onAppear {
