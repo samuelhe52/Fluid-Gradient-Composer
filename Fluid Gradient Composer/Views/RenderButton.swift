@@ -9,11 +9,12 @@ import SwiftUI
 
 struct RenderButton: View {
     @Environment(GradientRenderer.self) var renderer
+    @AppStorage("RenderSize") var renderSize: RenderSize = .init(width: 1200, height: 2000)
     @State var showRenderPreview: Bool = false
     
     var body: some View {
         Button {
-            renderer.renderImage()
+            renderer.renderImage(size: renderSize)
             showRenderPreview = true
         } label: {
             switch renderer.renderState {

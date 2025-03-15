@@ -12,11 +12,9 @@ struct RenderPreview: View {
     @Environment(\.colorScheme) var colorScheme
     @State var showConfiguration: Bool = true
     @State var showImage: Bool = true
-    @State var size: CGSize = .init(width: Constants.defaultWidth,
-                                    height: Constants.defaultHeight)
     @State var lockedAspectRatio: CGFloat?
     @FocusState private var focusedField: InputField?
-    let blur: CGFloat = Constants.defaultBlur
+    @AppStorage("RenderSize") var renderSize: RenderSize = .init(width: 1200, height: 2000)
     
     // MARK: - Body
     var body: some View {
@@ -41,17 +39,19 @@ struct RenderPreview: View {
             configuration
         }
         .padding()
-        .animation(.bouncy, value: size)
-        .onChange(of: size) {
+        .animation(.bouncy, value: renderSize)
+        .onChange(of: renderSize) {
             withAnimation {
-                showImage = false
+                if showImage {
+                    showImage = false
+                }
             }
         }
     }
     
     private func refreshImage() {
         withAnimation {
-            renderer.renderImage(size: size, blur: blur)
+            renderer.renderImage(size: renderSize, blur: Constants.defaultBlur)
             showImage = true
         }
     }
@@ -71,20 +71,20 @@ struct RenderPreview: View {
         if showConfiguration {
             VStack(alignment: .center, spacing: 0) {
                 HStack {
-                    TextField("Width", value: $size.width, formatter: formatter)
+                    TextField("Width", value: $renderSize.width, formatter: formatter)
                         .keyboardType(.numberPad)
                         .focused($focusedField, equals: .width)
                     aspectRatioLock
-                    TextField("Height", value: $size.height, formatter: formatter)
+                    TextField("Height", value: $renderSize.height, formatter: formatter)
                         .keyboardType(.numberPad)
                         .focused($focusedField, equals: .height)
                 }
                 .textFieldStyle(.roundedBorder)
                 .padding(.top, 5)
                 HStack {
-                    Slider(value: $size.width, in: 500...8000, step: 50)
+                    Slider(value: $renderSize.width, in: 500...8000, step: 50)
                     ColorSchemeSwitchButton()
-                    Slider(value: $size.height, in: 500...8000, step: 50)
+                    Slider(value: $renderSize.height, in: 500...8000, step: 50)
                 }
                 .onAppear {
                     let config = UIImage.SymbolConfiguration(scale: .small)
@@ -102,20 +102,20 @@ struct RenderPreview: View {
             if lockedAspectRatio != nil {
                 lockedAspectRatio = nil
             } else {
-                lockedAspectRatio = size.width / size.height
+                lockedAspectRatio = renderSize.width / renderSize.height
             }
         } label: {
             Image(systemName: "link")
                 .tint((lockedAspectRatio != nil) ? .blue : .gray)
         }
-        .onChange(of: size.width) {
+        .onChange(of: renderSize.width) {
             if let lockedAspectRatio {
-                size.height = size.width / lockedAspectRatio
+                renderSize.height = renderSize.width / lockedAspectRatio
             }
         }
-        .onChange(of: size.height) {
+        .onChange(of: renderSize.height) {
             if let lockedAspectRatio {
-                size.width = size.height * lockedAspectRatio
+                renderSize.width = renderSize.height * lockedAspectRatio
             }
         }
     }
@@ -164,7 +164,7 @@ struct RenderPreview: View {
             ProportionalRoundedRectangle(cornerFraction: 0.03)
                 .stroke(.blue, lineWidth: 5)
                 .fill(.blue.opacity(0.1))
-                .aspectRatio(size.width / size.height,
+                .aspectRatio(renderSize.width / renderSize.height,
                              contentMode: .fit)
                 .transition(
                     .move(edge: .top)
@@ -206,10 +206,11 @@ struct RenderPreview: View {
 }
 
 #Preview {
+    @Previewable @AppStorage("RenderSize") var renderSize: RenderSize = .init(width: 1200, height: 2000)
     let renderer = GradientRenderer(preset: .default)
     RenderPreview()
         .environment(renderer)
         .onAppear {
-            renderer.renderImage()
+            renderer.renderImage(size: renderSize)
         }
 }

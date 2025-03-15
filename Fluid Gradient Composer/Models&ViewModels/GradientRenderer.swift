@@ -42,11 +42,10 @@ class GradientRenderer {
     }
     
     @MainActor
-    func renderImage(size: CGSize = .init(width: 1200, height: 2000),
-                     blur: CGFloat = 0.75) {
+    func renderImage(size: RenderSize, blur: CGFloat = 0.75) {
         let blurValue = min(size.width, size.height)
         renderState = .rendering
-        if let uiImage = renderGradient(size: size) {
+        if let uiImage = renderGradient(size: size.cgSize) {
             let image = Image(uiImage: uiImage)
                 .blur(radius: pow(blurValue, blur))
             let imageRenderer = ImageRenderer(content: image)
@@ -59,5 +58,38 @@ class GradientRenderer {
                 self?.renderState = .blank
             }
         }
+    }
+}
+
+struct RenderSize: Codable, RawRepresentable, Equatable {
+    var width: Double
+    var height: Double
+    
+    init(width: Double, height: Double) {
+        self.width = width
+        self.height = height
+    }
+    
+    init(_ cgSize: CGSize) throws {
+        self.width = cgSize.width
+        self.height = cgSize.height
+    }
+    
+    var cgSize: CGSize {
+        .init(width: width, height: height)
+    }
+    
+    // RawRepresentable implementation
+    typealias RawValue = String
+    
+    init?(rawValue: String) {
+        let components = rawValue.split(separator: ",").compactMap { Double($0) }
+        guard components.count == 2 else { return nil }
+        self.width = components[0]
+        self.height = components[1]
+    }
+    
+    var rawValue: String {
+        "\(width),\(height)"
     }
 }
